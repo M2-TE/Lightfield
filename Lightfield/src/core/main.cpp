@@ -39,6 +39,14 @@ int CALLBACK WinMain(
 			MB_OK | MB_ICONEXCLAMATION);
 	}
 
+	// track potentially live d3d11 objects
+#ifdef _DEBUG
+	IDXGIDebug* debugDev;
+	HRESULT hr = DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debugDev));
+	debugDev->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
+	debugDev->Release();
+#endif
+
 	delete app;
 	return exitCode;
 }
