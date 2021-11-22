@@ -17,6 +17,9 @@
 #include <unordered_set>
 #include <bitset>
 
+// utils
+#include "utils/Helpers.hpp"
+
 #ifdef Win32
 	#pragma comment(lib, "d3d11.lib")
 	#pragma comment(lib, "D3DCompiler.lib")

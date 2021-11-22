@@ -13,10 +13,7 @@ public:
 	{
 
 	}
-	Input(const Input&) = delete;
-	Input(const Input&&) = delete;
-	Input& operator=(const Input&) = delete;
-	Input& operator=(const Input&&) = delete;
+	ROF_DELETE(Input);
 
 	// Pressed checks if the key was pressed during this frame
 	// Down checks if the key is currently down

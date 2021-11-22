@@ -88,11 +88,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\core\Application.hpp" />
-    <ClInclude Include="src\core\Input\Input.hpp" />
-    <ClInclude Include="src\core\Input\Keyboard.hpp" />
-    <ClInclude Include="src\core\Input\Mouse.hpp" />
-    <ClInclude Include="src\core\Renderer.hpp" />
+    <ClInclude Include="src\core\utils\Helpers.hpp" />
+    <ClInclude Include="src\core\windows\Application.hpp" />
+    <ClInclude Include="src\core\input\Input.hpp" />
+    <ClInclude Include="src\core\input\Keyboard.hpp" />
+    <ClInclude Include="src\core\input\Mouse.hpp" />
+    <ClInclude Include="src\core\windows\dx11\DepthStencil.hpp" />
+    <ClInclude Include="src\core\windows\dx11\Renderer.hpp" />
     <ClInclude Include="src\pch\pch.hpp" />
   </ItemGroup>
   <ItemGroup>

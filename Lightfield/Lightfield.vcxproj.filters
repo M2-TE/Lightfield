@@ -18,19 +18,25 @@
     <ClInclude Include="src\pch\pch.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\Application.hpp">
+    <ClInclude Include="src\core\windows\Application.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\Input\Input.hpp">
+    <ClInclude Include="src\core\input\Input.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\Renderer.hpp">
+    <ClInclude Include="src\core\windows\dx11\Renderer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\Input\Keyboard.hpp">
+    <ClInclude Include="src\core\input\Keyboard.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\Input\Mouse.hpp">
+    <ClInclude Include="src\core\input\Mouse.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\utils\Helpers.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\windows\dx11\DepthStencil.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

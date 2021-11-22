@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Input/Input.hpp"
+#include "input/Input.hpp"
+#include "dx11/Renderer.hpp"
 
 class Application
 {
@@ -24,43 +25,42 @@ public:
 		RegisterClassEx(&wc);
 
 		// create actual window
+		constexpr long windowStyle = WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU;
+
+		// adjust rect with window borders in mind
+		RECT windowRect = {};
+		windowRect.left = 0;
+		windowRect.right = width + windowRect.left;
+		windowRect.top = 0;
+		windowRect.bottom = height + windowRect.top;
+		if (AdjustWindowRect(&windowRect, windowStyle, FALSE) == 0)
 		{
-			constexpr long windowStyle = WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU;
-
-			// adjust rect with window borders in mind
-			RECT windowRect;
-			windowRect.left = 0;
-			windowRect.right = width + windowRect.left;
-			windowRect.top = 0;
-			windowRect.bottom = height + windowRect.top;
-			if (AdjustWindowRect(&windowRect, windowStyle, FALSE) == 0)
-			{
-				throw std::runtime_error("Window Rect Adjustment failed");
-			}
-
-			int defaultThingy = CW_USEDEFAULT;
-			int x = 0;
-			int y = 0;
-
-			// create window and save handle
-			hWnd = CreateWindowW(
-				wndTitle, wndTitle,
-				windowStyle,
-				defaultThingy, defaultThingy,
-				windowRect.right - windowRect.left,
-				windowRect.bottom - windowRect.top,
-				nullptr, nullptr, hInstance, this);
-
-			//SetWindowLong(hWnd, GWL_STYLE, 0); //remove all window styles
-
-			if (hWnd == nullptr) throw std::runtime_error("Window could not be created");
-
-			// Setup input for window
-			input.hWnd = hWnd;
-
-			SetWindowPos(hWnd, HWND_TOP, width / 4u, height / 4u, width, height, 0u);
-			ShowWindow(hWnd, SW_SHOWDEFAULT);
+			throw std::runtime_error("Window Rect Adjustment failed");
 		}
+
+		int defaultThingy = CW_USEDEFAULT;
+		int x = 0;
+		int y = 0;
+
+		// create window and save handle
+		hWnd = CreateWindowW(
+			wndTitle, wndTitle,
+			windowStyle,
+			defaultThingy, defaultThingy,
+			windowRect.right - windowRect.left,
+			windowRect.bottom - windowRect.top,
+			nullptr, nullptr, hInstance, this);
+
+		//SetWindowLong(hWnd, GWL_STYLE, 0); //remove all window styles
+
+		if (hWnd == nullptr) throw std::runtime_error("Window could not be created");
+
+		// Setup renderer and input for window
+		pRenderer = std::make_unique<Renderer>(hWnd, width, height);
+		input.hWnd = hWnd;
+
+		SetWindowPos(hWnd, HWND_TOP, width / 4u, height / 4u, width, height, 0u);
+		ShowWindow(hWnd, SW_SHOWDEFAULT);
 	}
 	~Application()
 	{
@@ -78,7 +78,7 @@ public:
 			msgInfo = ReadMessages();
 			if (!msgInfo.first) return msgInfo.second;
 
-			//Update();
+			pRenderer->Render();
 		}
 		return 0;
 	}
@@ -244,5 +244,6 @@ private:
 	HWND hWnd;
 
 	bool bRunning = false;
+	std::unique_ptr<Renderer> pRenderer;
 	Input input;
 };
