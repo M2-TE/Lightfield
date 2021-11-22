@@ -39,6 +39,9 @@
     <ClInclude Include="src\core\windows\dx11\DepthStencil.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\windows\dx11\Shader.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\pch\pch.cpp">
@@ -47,5 +50,12 @@
     <ClCompile Include="src\core\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\windows\dx11\Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="src\shaders\VertexShader.hlsl" />
+    <FxCompile Include="src\shaders\PixelShader.hlsl" />
   </ItemGroup>
 </Project>

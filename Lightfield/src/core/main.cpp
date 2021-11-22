@@ -39,6 +39,8 @@ int CALLBACK WinMain(
 			MB_OK | MB_ICONEXCLAMATION);
 	}
 
+	delete app;
+
 	// track potentially live d3d11 objects
 #ifdef _DEBUG
 	IDXGIDebug* debugDev;
@@ -47,6 +49,5 @@ int CALLBACK WinMain(
 	debugDev->Release();
 #endif
 
-	delete app;
 	return exitCode;
 }
