@@ -1,4 +1,5 @@
-float4 main( float4 pos : POSITION ) : SV_POSITION
+// rendering oversized triangle
+float4 main(uint vertID : SV_VertexID) : SV_POSITION
 {
-	return pos;
+    return float4((vertID == 1) ? 3.0f : -1.0f, (vertID == 2) ? -3.0f : 1.0f, 0.0f, 1.0f);
 }

@@ -73,6 +73,7 @@
       </VariableName>
       <HeaderFileOutput>
       </HeaderFileOutput>
+      <ShaderModel>4.0</ShaderModel>
     </FxCompile>
     <PostBuildEvent>
       <Command>XCOPY "$(SolutionDir)data\shaders" "$(OutDir)data\shaders\" /S /I /Y</Command>
@@ -102,6 +103,7 @@
       </VariableName>
       <HeaderFileOutput>
       </HeaderFileOutput>
+      <ShaderModel>4.0</ShaderModel>
     </FxCompile>
     <PostBuildEvent>
       <Command>XCOPY "$(SolutionDir)data\shaders" "$(OutDir)data\shaders\" /S /I /Y</Command>

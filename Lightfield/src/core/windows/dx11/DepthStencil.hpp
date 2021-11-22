@@ -35,10 +35,10 @@ public:
 		// create shader resource view of depth stencil texture
 		{
 			D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
-			desc.Format = DXGI_FORMAT_X24_TYPELESS_G8_UINT; // read stencil only
 			desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 			desc.Texture2D = { 0u, 1u };
 
+			desc.Format = DXGI_FORMAT_X24_TYPELESS_G8_UINT; // read stencil only
 			hr = pDevice->CreateShaderResourceView(pDepthStencilTex.Get(), &desc, pStencilSRV.GetAddressOf());
 			if (FAILED(hr)) throw std::runtime_error("Stencil SRV creation failed");
 

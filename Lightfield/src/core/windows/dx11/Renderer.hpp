@@ -14,6 +14,7 @@ public:
 		CreateDeviceSwapchain(hWnd);
 		AccessBackbuffer();
 		CreateRasterizer();
+		CreateDepthStencilState();
 
 		// Viewport creation and permanent assignment
 		CD3D11_VIEWPORT viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height));
@@ -119,7 +120,6 @@ private:
 	}
 	void AccessBackbuffer()
 	{
-
 		// Get access to swapchain backbuffer and create render target view for it
 		HRESULT hr = pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)pBackBuffer.GetAddressOf());
 		if (FAILED(hr)) throw std::runtime_error("Could not aquire swapchain backbuffer");
@@ -150,6 +150,20 @@ private:
 		pDevice->CreateRasterizerState(&rastDesc, pRasterizer.GetAddressOf());
 		pDeviceContext->RSSetState(pRasterizer.Get());
 	}
+	void CreateDepthStencilState()
+	{
+		D3D11_DEPTH_STENCIL_DESC dssDesc = {};
+		{
+			dssDesc.DepthEnable = FALSE;
+			//dssDesc.DepthEnable = TRUE;
+			dssDesc.StencilEnable = FALSE;
+			//dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+			dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+			dssDesc.DepthFunc = D3D11_COMPARISON_LESS;
+		}
+		pDevice->CreateDepthStencilState(&dssDesc, pDepthStencilState.GetAddressOf());
+		pDeviceContext->OMSetDepthStencilState(pDepthStencilState.Get(), 1u);
+	}
 
 private:
 	bool bVSync = true;
@@ -165,5 +179,6 @@ private:
 	Shader<ID3D11VertexShader> vertexShader;
 	Shader<ID3D11PixelShader> pixelShader;
 	std::unique_ptr<DepthStencil> pDepthStencil;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDepthStencilState;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizer;
 };
