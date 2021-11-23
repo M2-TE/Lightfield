@@ -30,8 +30,9 @@ public:
 	ROF_DELETE(Camera);
 
 public:
-    inline ID3D11Buffer* const GetPerspMatBuffer() { return buffer.Get(); }
-    inline ID3D11Buffer* const GetViewMatBuffer(ID3D11DeviceContext* const pDeviceContext) { return transform.GetBuffer(pDeviceContext); }
+    inline Transform& GetTransform() { return transform; }
+    inline ID3D11Buffer* const GetProjectionBuffer() { return buffer.Get(); }
+    inline ID3D11Buffer* const GetViewBuffer(ID3D11DeviceContext* const pDeviceContext) { return transform.GetBuffer(pDeviceContext); }
 
 private:
     struct BufferStruct { DirectX::XMMATRIX ProjectionMatrix; } projMatStruct;

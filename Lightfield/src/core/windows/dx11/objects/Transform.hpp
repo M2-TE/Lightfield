@@ -126,7 +126,6 @@ public:
 	{
 		if (bDirty) UpdateTransformMatrix(pDeviceContext);
 
-		// model mat also required by PS for normal calc on per-pixel basis
 		pDeviceContext->VSSetConstantBuffers(2u, 1u, pModelMatBuffer.GetAddressOf());
 		//pDeviceContext->PSSetConstantBuffers(0u, 1u, pModelMatBuffer.GetAddressOf());
 	}
@@ -134,6 +133,11 @@ public:
 	{
 		if (bDirty) UpdateTransformMatrix(pDeviceContext);
 		return pModelMatBuffer.Get();
+	}
+	inline ID3D11Buffer** const GetBufferAddress(ID3D11DeviceContext* const pDeviceContext)
+	{
+		if (bDirty) UpdateTransformMatrix(pDeviceContext);
+		return pModelMatBuffer.GetAddressOf();
 	}
 
 private:

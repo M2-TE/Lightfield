@@ -10,6 +10,10 @@ public:
 	~RenderObject() = default;
 	ROF_DELETE(RenderObject);
 
+public:
+	inline Transform& GetTransform() { return transform; }
+	inline void Draw(ID3D11DeviceContext* const pDeviceContext) { mesh.Draw(pDeviceContext); }
+
 private:
 	Transform transform;
 	Mesh mesh;

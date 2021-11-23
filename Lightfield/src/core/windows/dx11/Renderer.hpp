@@ -17,7 +17,7 @@ public:
 		CreateDeviceSwapchain(hWnd);
 		AccessBackbuffer();
 		CreateRasterizer();
-		CreateDepthStencilState();
+		CreateDepthStencilStates();
 
 		// Viewport creation and permanent assignment
 		CD3D11_VIEWPORT viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height));
@@ -25,12 +25,17 @@ public:
 
 		pDepthStencil = std::make_unique<DepthStencil>(pDevice.Get(), width, height);
 
-		vertexShader.LoadShader(pDevice.Get(), L"data/shaders/VertexShader.cso");
-		pixelShader.LoadShader(pDevice.Get(), L"data/shaders/PixelShader.cso");
+		oversizedTriangleVS.LoadShader(pDevice.Get(), L"data/shaders/OversizedTriangleVS.cso");
+		defaultPS.LoadShader(pDevice.Get(), L"data/shaders/DefaultPS.cso");
+		forwardVS.LoadShader(pDevice.Get(), L"data/shaders/ForwardVS.cso");
+		forwardPS.LoadShader(pDevice.Get(), L"data/shaders/ForwardPS.cso");
 
-		Texture2D tex = {};
-		D3D11_TEXTURE2D_DESC texdesc = {};
-		tex.CreateTexture(pDevice.Get(), texdesc);
+		// create camera and move it back a bit to see all the objects
+		pCamera = std::make_unique<Camera>(pDevice.Get());
+		pCamera->GetTransform().Translate(0.0f, 0.0f, -10.0f);
+
+		// create some objects to view
+		pRenderObject = std::make_unique<RenderObject>(pDevice.Get(), Primitive::Quad);
 	}
 	ROF_DELETE(Renderer);
 
@@ -41,19 +46,26 @@ public:
 		pDeviceContext->ClearRenderTargetView(pBackBufferRTV.Get(), clearColor);
 		pDepthStencil->ClearDepthStencil(pDeviceContext.Get());
 
-		// bind shaders
-		vertexShader.Bind(pDeviceContext.Get());
-		pixelShader.Bind(pDeviceContext.Get());
+		if (true) {
+			// Bind constant buffers (camera)
+			ID3D11Buffer* cbuffers[] = { pCamera->GetProjectionBuffer(), pCamera->GetViewBuffer(pDeviceContext.Get()) };
+			pDeviceContext->VSSetConstantBuffers(0u, 2u, cbuffers);
 
-		// set render target and depth stencil view for rendering
-		pDeviceContext->OMSetRenderTargets(1u, pBackBufferRTV.GetAddressOf(), pDepthStencil->GetView());
+			// Bind shaders
+			forwardVS.Bind(pDeviceContext.Get());
+			forwardPS.Bind(pDeviceContext.Get());
 
-		// set empty vertex buffer
-		static constexpr UINT zero = 0u;
-		pDeviceContext->IASetVertexBuffers(zero, zero, nullptr, &zero, &zero);
+			// Set render target and depth stencil view for rendering
+			pDeviceContext->OMSetDepthStencilState(pDefaultDSS.Get(), 1u);
+			pDeviceContext->OMSetRenderTargets(1u, pBackBufferRTV.GetAddressOf(), pDepthStencil->GetView());
 
-		// draw three vertices (oversized screen space triangle created in vertex shader)
-		pDeviceContext->Draw(3u, zero);
+			// Bind and draw all the individual objects
+			pDeviceContext->VSSetConstantBuffers(2u, 1u, pRenderObject->GetTransform().GetBufferAddress(pDeviceContext.Get()));
+			pRenderObject->Draw(pDeviceContext.Get());
+		}
+		else {
+			DrawOversizedTriangle();
+		}
 
 		// Present backbuffer to the screen
 		if (bVSync)pSwapChain->Present(1u, 0u);
@@ -61,6 +73,26 @@ public:
 	}
 
 private:
+	// Pipeline usage
+	void DrawOversizedTriangle()
+	{
+		// bind shaders
+		oversizedTriangleVS.Bind(pDeviceContext.Get());
+		defaultPS.Bind(pDeviceContext.Get());
+
+		// set render target and depth stencil view for rendering
+		pDeviceContext->OMSetDepthStencilState(pNoDepthDSS.Get(), 1u);
+		pDeviceContext->OMSetRenderTargets(1u, pBackBufferRTV.GetAddressOf(), nullptr);
+
+		// set empty vertex buffer
+		static constexpr UINT zero = 0u;
+		pDeviceContext->IASetVertexBuffers(zero, zero, nullptr, &zero, &zero);
+
+		// draw three vertices (oversized screen space triangle created in vertex shader)
+		pDeviceContext->Draw(3u, zero);
+	}
+
+	// Pipeline creation
 	void CreateDeviceSwapchain(HWND hWnd)
 	{
 		DXGI_SWAP_CHAIN_DESC sd = {};
@@ -156,36 +188,43 @@ private:
 		pDevice->CreateRasterizerState(&rastDesc, pRasterizer.GetAddressOf());
 		pDeviceContext->RSSetState(pRasterizer.Get());
 	}
-	void CreateDepthStencilState()
+	void CreateDepthStencilStates()
 	{
 		D3D11_DEPTH_STENCIL_DESC dssDesc = {};
-		{
-			dssDesc.DepthEnable = FALSE;
-			//dssDesc.DepthEnable = TRUE;
-			dssDesc.StencilEnable = FALSE;
-			//dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-			dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-			dssDesc.DepthFunc = D3D11_COMPARISON_LESS;
-		}
-		pDevice->CreateDepthStencilState(&dssDesc, pDepthStencilState.GetAddressOf());
-		pDeviceContext->OMSetDepthStencilState(pDepthStencilState.Get(), 1u);
+		dssDesc.DepthEnable = FALSE;
+		dssDesc.StencilEnable = FALSE;
+		dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		dssDesc.DepthFunc = D3D11_COMPARISON_LESS;
+		pDevice->CreateDepthStencilState(&dssDesc, pNoDepthDSS.GetAddressOf());
+
+
+		dssDesc.DepthEnable = TRUE;
+		dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		pDevice->CreateDepthStencilState(&dssDesc, pDefaultDSS.GetAddressOf());
 	}
 
 private:
 	bool bVSync = true;
 	UINT width, height;
 
+	// Device with context and swapchain
 	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pDeviceContext;
-
 	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwapChain;
+
+	// Pipeline objects
+	std::unique_ptr<DepthStencil> pDepthStencil;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizer;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pNoDepthDSS, pDefaultDSS;
+	// Swapchain backbuffer
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pBackBufferRTV;
 
-	Shader<ID3D11VertexShader> vertexShader;
-	Shader<ID3D11PixelShader> pixelShader;
+	// Shaders
+	Shader<ID3D11VertexShader> forwardVS, oversizedTriangleVS;
+	Shader<ID3D11PixelShader> forwardPS, defaultPS;
 
-	std::unique_ptr<DepthStencil> pDepthStencil;
-	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDepthStencilState;
-	Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizer;
+	// Render objects
+	std::unique_ptr<Camera> pCamera;
+	std::unique_ptr<RenderObject> pRenderObject;
 };

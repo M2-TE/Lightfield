@@ -70,7 +70,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\shaders\VertexShader.hlsl" />
-    <FxCompile Include="src\shaders\PixelShader.hlsl" />
+    <FxCompile Include="src\shaders\OversizedTriangleVS.hlsl" />
+    <FxCompile Include="src\shaders\DefaultPS.hlsl" />
+    <FxCompile Include="src\shaders\ForwardVS.hlsl" />
+    <FxCompile Include="src\shaders\ForwardPS.hlsl" />
   </ItemGroup>
 </Project>

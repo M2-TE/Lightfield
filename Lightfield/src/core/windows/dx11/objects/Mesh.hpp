@@ -8,26 +8,19 @@ public:
 	{
 		switch (primitive)
 		{
-			case Primitive::Cube:
-				SetAsCube(pDevice);
-				break;
-
-			case Primitive::Sphere:
-				SetAsSphere(pDevice);
-				break;
-
-			case Primitive::Quad:
-				SetAsQuad(pDevice);
-				break;
+			case Primitive::Cube: SetAsCube(pDevice); break;
+			case Primitive::Sphere: SetAsSphere(pDevice); break;
+			case Primitive::Quad: SetAsQuad(pDevice); break;
 		}
+
+		CreateBuffer(pDevice);
 	}
 	~Mesh() = default;
 	ROF_DELETE(Mesh);
 
 public:
-	void BindAndDraw(ID3D11DeviceContext* const pDeviceContext)
+	void Draw(ID3D11DeviceContext* const pDeviceContext)
 	{
-		const UINT stride = vertexSize;
 		static constexpr UINT offset = 0u;
 		static constexpr UINT startSlot = 0u;
 		static constexpr UINT numBuffers = 1u;
@@ -35,7 +28,7 @@ public:
 		pDeviceContext->IASetVertexBuffers(
 			startSlot, numBuffers,
 			pVertexBuffer.GetAddressOf(),
-			&stride, &offset);
+			&vertexSize, &offset);
 
 		pDeviceContext->IASetIndexBuffer(
 			pIndexBuffer.Get(),
@@ -56,8 +49,28 @@ private:
 	}
 	void SetAsQuad(ID3D11Device* const pDevice)
 	{
-		// TODO
+		DirectX::XMFLOAT4 norm = { 0.0f, 0.0f, -1.0f, 0.0f };
+		DirectX::XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+		float depth = 0.0f;
+		float p = 1.0f, n = -1.0f;
+		DirectX::XMFLOAT4 topLeft =		{ n, p, depth, 1.0f };
+		DirectX::XMFLOAT4 topRight =	{ p, p, depth, 1.0f };
+		DirectX::XMFLOAT4 botLeft =		{ n, n, depth, 1.0f };
+		DirectX::XMFLOAT4 botRight =	{ p, n, depth, 1.0f };
+
+		vertices = {
+			{ topLeft, norm, col },
+			{ topRight, norm, col },
+			{ botLeft, norm, col },
+			{ botRight, norm, col }
+		};
+		indices = {
+			0, 1, 2,
+			1, 3, 2
+		};
 	}
+
 	void CreateBuffer(ID3D11Device* const pDevice)
 	{
 		D3D11_BUFFER_DESC bufferDesc = {};
@@ -65,7 +78,6 @@ private:
 
 		// Fill vertex buffer
 		{
-			vertexSize = static_cast<UINT>(sizeof(Vertex));
 			vertexCount = static_cast<UINT>(vertices.size());
 
 			bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
@@ -109,5 +121,6 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pVertexBuffer, pIndexBuffer;
 	std::vector<Vertex> vertices;
 	std::vector<Index> indices;
-	UINT vertexSize, vertexCount, indexCount;
+	static constexpr UINT vertexSize = sizeof(Vertex);
+	UINT vertexCount, indexCount;
 };
