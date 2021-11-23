@@ -1,6 +1,7 @@
 struct Input
 {
-	
+    float4 normal : Normal;
+    float4 color : Color;
 };
 struct Output
 {
@@ -10,6 +11,6 @@ struct Output
 Output main(Input input)
 {
     Output output;
-    output.color = float4(1.0f, 1.0f, 1.0f, 1.0f);
+    output.color = input.color;
     return output;
 }
