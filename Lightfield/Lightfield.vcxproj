@@ -117,15 +117,18 @@
     <ClInclude Include="src\core\input\Input.hpp" />
     <ClInclude Include="src\core\input\Keyboard.hpp" />
     <ClInclude Include="src\core\input\Mouse.hpp" />
-    <ClInclude Include="src\core\windows\dx11\DepthStencil.hpp" />
+    <ClInclude Include="src\core\windows\dx11\objects\Mesh.hpp" />
+    <ClInclude Include="src\core\windows\dx11\objects\RenderObject.hpp" />
+    <ClInclude Include="src\core\windows\dx11\objects\Transform.hpp" />
+    <ClInclude Include="src\core\windows\dx11\wrappers\DepthStencil.hpp" />
     <ClInclude Include="src\core\windows\dx11\Renderer.hpp" />
-    <ClInclude Include="src\core\windows\dx11\Shader.hpp" />
-    <ClInclude Include="src\core\windows\dx11\Texture.hpp" />
+    <ClInclude Include="src\core\windows\dx11\wrappers\Shader.hpp" />
+    <ClInclude Include="src\core\windows\dx11\wrappers\Texture.hpp" />
     <ClInclude Include="src\pch\pch.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\main.cpp" />
-    <ClCompile Include="src\core\windows\dx11\Shader.cpp" />
+    <ClCompile Include="src\core\windows\dx11\wrappers\Shader.cpp" />
     <ClCompile Include="src\pch\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>

@@ -36,13 +36,22 @@
     <ClInclude Include="src\core\utils\Helpers.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\windows\dx11\DepthStencil.hpp">
+    <ClInclude Include="src\core\windows\dx11\wrappers\DepthStencil.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\windows\dx11\Shader.hpp">
+    <ClInclude Include="src\core\windows\dx11\wrappers\Shader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\windows\dx11\Texture.hpp">
+    <ClInclude Include="src\core\windows\dx11\wrappers\Texture.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\windows\dx11\objects\RenderObject.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\windows\dx11\objects\Transform.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\windows\dx11\objects\Mesh.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,7 +62,7 @@
     <ClCompile Include="src\core\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\windows\dx11\Shader.cpp">
+    <ClCompile Include="src\core\windows\dx11\wrappers\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -22,20 +22,23 @@
 #include "utils/Helpers.hpp"
 
 #ifdef Win32
-	#pragma comment(lib, "d3d11.lib")
-	#pragma comment(lib, "D3DCompiler.lib")
 	#include <Windows.h>
 
+	// DirectX 11
+	#pragma comment(lib, "d3d11.lib")
+	#include <d3d11.h>
+	#include <wrl.h> // smart pointers for COM objects
+	#include <DirectXMath.h>
+
+	// DirectX 11 Debugging
 	#ifdef _DEBUG
 	#pragma comment(lib, "dxgi.lib")
 	#pragma comment(lib, "dxguid.lib")
 	#include <dxgidebug.h>
 	#include <dxgi1_3.h>
 	#endif
-
-	// DirectX 11
-	#include <d3d11.h>
-	#include <wrl.h> // smart pointers for COM objects
+	
+	// Shader Compiler
+	#pragma comment(lib, "D3DCompiler.lib")
 	#include <d3dcompiler.h>
-	#include <DirectXMath.h>
 #endif
