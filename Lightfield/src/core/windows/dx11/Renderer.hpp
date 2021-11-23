@@ -4,6 +4,7 @@
 #include "wrappers/Shader.hpp"
 #include "wrappers/Texture.hpp"
 #include "objects/RenderObject.hpp"
+#include "objects/Camera.hpp"
 
 class Renderer
 {
@@ -62,7 +63,6 @@ public:
 private:
 	void CreateDeviceSwapchain(HWND hWnd)
 	{
-
 		DXGI_SWAP_CHAIN_DESC sd = {};
 		sd.BufferDesc.Width = 0;
 		sd.BufferDesc.Height = 0;

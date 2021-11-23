@@ -3,11 +3,11 @@
 class Transform
 {
 public:
-	Transform(ID3D11Device* const pDevice) : Transform(pDevice, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }) {}
-	Transform(ID3D11Device* const pDevice, DirectX::XMFLOAT3A pos, DirectX::XMFLOAT3A rot, DirectX::XMFLOAT3A scale_param) :
+	Transform(ID3D11Device* const pDevice, bool bInverted = false) : Transform(pDevice, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, bInverted) {}
+	Transform(ID3D11Device* const pDevice, DirectX::XMFLOAT3A pos, DirectX::XMFLOAT3A rot, DirectX::XMFLOAT3A scale_param, bool bInverted = false) :
 		rotation(DirectX::XMQuaternionRotationRollPitchYaw(rot.x, rot.y, rot.z)),
 		position(DirectX::XMLoadFloat3A(&pos)), scale(DirectX::XMLoadFloat3A(&scale_param)),
-		bufferStruct(), isMatDirty(true), isInverted(false)
+		bufferStruct(), bDirty(true), bInverted(bInverted)
 	{
 		D3D11_BUFFER_DESC cbDesc = {};
 		cbDesc.ByteWidth = sizeof(BufferStruct);
@@ -18,21 +18,19 @@ public:
 		cbDesc.StructureByteStride = 0;
 
 		// Fill in the subresource data.
-		D3D11_SUBRESOURCE_DATA InitData = {};
-		InitData.pSysMem = &bufferStruct;
-		InitData.SysMemPitch = 0;
-		InitData.SysMemSlicePitch = 0;
+		D3D11_SUBRESOURCE_DATA initData = {};
+		initData.pSysMem = &bufferStruct;
+		initData.SysMemPitch = 0;
+		initData.SysMemSlicePitch = 0;
 
 		// Create the buffer.
-		HRESULT hr = pDevice->CreateBuffer(&cbDesc, &InitData,
+		HRESULT hr = pDevice->CreateBuffer(&cbDesc, &initData,
 			pModelMatBuffer.GetAddressOf());
 		if (FAILED(hr)) throw std::runtime_error("Could not create transform buffer");
 	}
+	ROF_DELETE(Transform);
 
 public:
-	// Invert for e.g. camera transform
-	void SetInverted(bool isInverted) { this->isInverted = isInverted; }
-
 	// Local transform Getters
 	DirectX::XMFLOAT3A GetPosition() const
 	{
@@ -56,32 +54,32 @@ public:
 	// Local transform Setters
 	void SetPosition(const float x, const float y, const float z)
 	{
-		isMatDirty = true;
+		bDirty = true;
 		DirectX::XMFLOAT3A positionBase = { x, y, z };
 		position = DirectX::XMLoadFloat3A(&positionBase);
 	}
 	void SetRotation(const float x, const float y, const float z, const float w)
 	{
-		isMatDirty = true;
+		bDirty = true;
 		DirectX::XMFLOAT4A rotationBase = { x, y, z, w };
 		rotation = DirectX::XMLoadFloat4A(&rotationBase);
 	}
 	void SetRotationEuler(const float x, const float y, const float z)
 	{
-		isMatDirty = true;
+		bDirty = true;
 		rotation = DirectX::XMQuaternionRotationRollPitchYaw(x, y, z);
 	}
 	void SetRotationEulerImmediate(ID3D11DeviceContext* const pDeviceContext, const float x, const float y, const float z)
 	{
-		isMatDirty = true;
+		bDirty = true;
 		DirectX::XMFLOAT3A rotationEulerBase = { x, y, z };
 		rotation = DirectX::XMQuaternionRotationRollPitchYaw(rotationEulerBase.x, rotationEulerBase.y, rotationEulerBase.z);
 
-		if (isMatDirty) UpdateTransformMatrix(pDeviceContext);
+		if (bDirty) UpdateTransformMatrix(pDeviceContext);
 	}
 	void SetScale(const float x, const float y, const float z)
 	{
-		isMatDirty = true;
+		bDirty = true;
 		DirectX::XMFLOAT3A scaleBase = { x, y, z };
 		scale = DirectX::XMLoadFloat3A(&scaleBase);
 	}
@@ -89,13 +87,13 @@ public:
 	// Adding offset to current transform vectors
 	void Translate(const float x, const float y, const float z)
 	{
-		isMatDirty = true;
+		bDirty = true;
 		DirectX::XMFLOAT3A translationBase = { x, y, z };
 		position = DirectX::XMVectorAdd(DirectX::XMLoadFloat3A(&translationBase), position);
 	}
-	void Rotate(const float x, const float y, const float z)
+	void RotateEuler(const float x, const float y, const float z)
 	{
-		isMatDirty = true;
+		bDirty = true;
 		rotation = DirectX::XMQuaternionMultiply(rotation,
 			DirectX::XMQuaternionRotationRollPitchYaw(x, y, z));
 	}
@@ -126,15 +124,15 @@ public:
 	// Bind to render pipeline or get buffer directly
 	inline void Bind(ID3D11DeviceContext* const pDeviceContext)
 	{
-		if (isMatDirty) UpdateTransformMatrix(pDeviceContext);
+		if (bDirty) UpdateTransformMatrix(pDeviceContext);
 
 		// model mat also required by PS for normal calc on per-pixel basis
 		pDeviceContext->VSSetConstantBuffers(2u, 1u, pModelMatBuffer.GetAddressOf());
 		//pDeviceContext->PSSetConstantBuffers(0u, 1u, pModelMatBuffer.GetAddressOf());
 	}
-	ID3D11Buffer* GetBuffer(ID3D11DeviceContext* const pDeviceContext)
+	inline ID3D11Buffer* const GetBuffer(ID3D11DeviceContext* const pDeviceContext)
 	{
-		if (isMatDirty) UpdateTransformMatrix(pDeviceContext);
+		if (bDirty) UpdateTransformMatrix(pDeviceContext);
 		return pModelMatBuffer.Get();
 	}
 
@@ -148,7 +146,7 @@ private:
 				DirectX::XMMatrixRotationQuaternion(rotation)),
 			DirectX::XMMatrixTranslationFromVector(position));
 
-		if (isInverted)
+		if (bInverted)
 		{
 			// invert matrix
 			bufferStruct.ModelMatrix = DirectX::XMMatrixInverse(nullptr, bufferStruct.ModelMatrix);
@@ -164,7 +162,7 @@ private:
 		//  Reenable GPU access to the vertex buffer data.
 		pDeviceContext->Unmap(pModelMatBuffer.Get(), 0u);
 
-		isMatDirty = false;
+		bDirty = false;
 	}
 
 private:
@@ -175,6 +173,6 @@ private:
 	DirectX::XMVECTOR rotation; // quaternion
 	DirectX::XMVECTOR scale;
 
-	bool isMatDirty;
-	bool isInverted;
+	const bool bInverted; // useful for e.g. camera transforms
+	bool bDirty;
 };

@@ -54,6 +54,9 @@
     <ClInclude Include="src\core\windows\dx11\objects\Mesh.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\windows\dx11\objects\Camera.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\pch\pch.cpp">

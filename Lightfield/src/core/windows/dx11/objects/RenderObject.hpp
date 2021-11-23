@@ -6,10 +6,7 @@
 class RenderObject
 {
 public:
-	RenderObject(ID3D11Device* const pDevice) : transform(pDevice)
-	{
-
-	}
+	RenderObject(ID3D11Device* const pDevice, Primitive primitive) : transform(pDevice), mesh(pDevice, primitive) {}
 	~RenderObject() = default;
 	ROF_DELETE(RenderObject);
 
