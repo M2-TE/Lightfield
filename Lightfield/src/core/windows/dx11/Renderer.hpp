@@ -1,8 +1,9 @@
 #pragma once
 
-#include "DepthStencil.hpp"
-#include "Shader.hpp"
-#include "Texture.hpp"
+#include "wrappers/DepthStencil.hpp"
+#include "wrappers/Shader.hpp"
+#include "wrappers/Texture.hpp"
+#include "objects/RenderObject.hpp"
 
 class Renderer
 {
