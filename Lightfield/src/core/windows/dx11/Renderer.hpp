@@ -2,6 +2,7 @@
 
 #include "DepthStencil.hpp"
 #include "Shader.hpp"
+#include "Texture.hpp"
 
 class Renderer
 {
@@ -24,6 +25,10 @@ public:
 
 		vertexShader.LoadShader(pDevice.Get(), L"data/shaders/VertexShader.cso");
 		pixelShader.LoadShader(pDevice.Get(), L"data/shaders/PixelShader.cso");
+
+		Texture2D tex = {};
+		D3D11_TEXTURE2D_DESC texdesc = {};
+		tex.CreateTexture(pDevice.Get(), texdesc);
 	}
 	ROF_DELETE(Renderer);
 
@@ -178,6 +183,7 @@ private:
 
 	Shader<ID3D11VertexShader> vertexShader;
 	Shader<ID3D11PixelShader> pixelShader;
+
 	std::unique_ptr<DepthStencil> pDepthStencil;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDepthStencilState;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizer;
