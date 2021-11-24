@@ -41,7 +41,62 @@ public:
 private:
 	void SetAsCube(ID3D11Device* const pDevice)
 	{
-		// TODO
+		DirectX::XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
+		static constexpr float p = 1.0f, z = 0.0f, n = -1.0f;
+		// Normals
+		static constexpr DirectX::XMFLOAT4 right = { p, z, z, z };
+		static constexpr DirectX::XMFLOAT4 up = { z, p, z, z };
+		static constexpr DirectX::XMFLOAT4 fwd = { z, z, p, z };
+		static constexpr DirectX::XMFLOAT4 left = { n, z, z, z };
+		static constexpr DirectX::XMFLOAT4 down = { z, n, z, z };
+		static constexpr DirectX::XMFLOAT4 bwd = { z, z, n, z };
+		// Vertex Positions
+		static constexpr DirectX::XMFLOAT4 lftTopFwd = { n, p, p, p };
+		static constexpr DirectX::XMFLOAT4 rgtTopFwd = { p, p, p, p };
+		static constexpr DirectX::XMFLOAT4 lftTopBwd = { n, p, n, p };
+		static constexpr DirectX::XMFLOAT4 rgtTopBwd = { p, p, n, p };
+		static constexpr DirectX::XMFLOAT4 lftBotFwd = { n, n, p, p };
+		static constexpr DirectX::XMFLOAT4 rgtBotFwd = { p, n, p, p };
+		static constexpr DirectX::XMFLOAT4 lftBotBwd = { n, n, n, p };
+		static constexpr DirectX::XMFLOAT4 rgtBotBwd = { p, n, n, p };
+
+		vertices = {
+
+			{ rgtTopBwd, right },
+			{ rgtTopFwd, right },
+			{ rgtBotBwd, right },
+			{ rgtBotFwd, right },
+
+			{ lftTopFwd, up },
+			{ rgtTopFwd, up },
+			{ lftTopBwd, up },
+			{ rgtTopBwd, up },
+
+			{ rgtTopFwd, fwd },
+			{ lftTopFwd, fwd },
+			{ rgtBotFwd, fwd },
+			{ lftBotFwd, fwd },
+
+			{ lftTopFwd, left },
+			{ lftTopBwd, left },
+			{ lftBotFwd, left },
+			{ lftBotBwd, left },
+
+			{ rgtBotFwd, down },
+			{ lftBotFwd, down },
+			{ rgtBotBwd, down },
+			{ lftBotBwd, down },
+
+			{ lftTopBwd, bwd },
+			{ rgtTopBwd, bwd },
+			{ lftBotBwd, bwd },
+			{ rgtBotBwd, bwd }
+		};
+
+		indices.reserve(6u * 4u);
+		for (UINT i = 0u; i < 6u * 4u; i += 4u) {
+			indices.insert(indices.end(), { 0 + i, 1 + i, 2 + i, 1 + i, 3 + i, 2 + i });
+		}
 	}
 	void SetAsSphere(ID3D11Device* const pDevice)
 	{
