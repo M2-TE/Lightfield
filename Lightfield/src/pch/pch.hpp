@@ -20,6 +20,7 @@
 
 // utils
 #include "utils/Helpers.hpp"
+#include "utils/Time.hpp"
 
 #ifdef Win32
 	#include <Windows.h>

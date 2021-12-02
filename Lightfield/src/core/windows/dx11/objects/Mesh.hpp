@@ -44,53 +44,53 @@ private:
 		DirectX::XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 		static constexpr float p = 1.0f, z = 0.0f, n = -1.0f;
 		// Normals
-		static constexpr DirectX::XMFLOAT4 right = { p, z, z, z };
-		static constexpr DirectX::XMFLOAT4 up = { z, p, z, z };
-		static constexpr DirectX::XMFLOAT4 fwd = { z, z, p, z };
-		static constexpr DirectX::XMFLOAT4 left = { n, z, z, z };
-		static constexpr DirectX::XMFLOAT4 down = { z, n, z, z };
-		static constexpr DirectX::XMFLOAT4 bwd = { z, z, n, z };
+		static constexpr DirectX::XMFLOAT4 right	= { p, z, z, z };
+		static constexpr DirectX::XMFLOAT4 up		= { z, p, z, z };
+		static constexpr DirectX::XMFLOAT4 fwd		= { z, z, p, z };
+		static constexpr DirectX::XMFLOAT4 left		= { n, z, z, z };
+		static constexpr DirectX::XMFLOAT4 down		= { z, n, z, z };
+		static constexpr DirectX::XMFLOAT4 bwd		= { z, z, n, z };
 		// Vertex Positions
-		static constexpr DirectX::XMFLOAT4 lftTopFwd = { n, p, p, p };
-		static constexpr DirectX::XMFLOAT4 rgtTopFwd = { p, p, p, p };
-		static constexpr DirectX::XMFLOAT4 lftTopBwd = { n, p, n, p };
-		static constexpr DirectX::XMFLOAT4 rgtTopBwd = { p, p, n, p };
-		static constexpr DirectX::XMFLOAT4 lftBotFwd = { n, n, p, p };
-		static constexpr DirectX::XMFLOAT4 rgtBotFwd = { p, n, p, p };
-		static constexpr DirectX::XMFLOAT4 lftBotBwd = { n, n, n, p };
-		static constexpr DirectX::XMFLOAT4 rgtBotBwd = { p, n, n, p };
+		static constexpr DirectX::XMFLOAT4 lftTopFwd = { n, p, p, 1.0f };
+		static constexpr DirectX::XMFLOAT4 rgtTopFwd = { p, p, p, 1.0f };
+		static constexpr DirectX::XMFLOAT4 lftTopBwd = { n, p, n, 1.0f };
+		static constexpr DirectX::XMFLOAT4 rgtTopBwd = { p, p, n, 1.0f };
+		static constexpr DirectX::XMFLOAT4 lftBotFwd = { n, n, p, 1.0f };
+		static constexpr DirectX::XMFLOAT4 rgtBotFwd = { p, n, p, 1.0f };
+		static constexpr DirectX::XMFLOAT4 lftBotBwd = { n, n, n, 1.0f };
+		static constexpr DirectX::XMFLOAT4 rgtBotBwd = { p, n, n, 1.0f };
 
 		vertices = {
 
-			{ rgtTopBwd, right },
-			{ rgtTopFwd, right },
-			{ rgtBotBwd, right },
-			{ rgtBotFwd, right },
+			{ rgtTopBwd, right, col },
+			{ rgtTopFwd, right, col },
+			{ rgtBotBwd, right, col },
+			{ rgtBotFwd, right, col },
 
-			{ lftTopFwd, up },
-			{ rgtTopFwd, up },
-			{ lftTopBwd, up },
-			{ rgtTopBwd, up },
+			{ lftTopFwd, up, col },
+			{ rgtTopFwd, up, col },
+			{ lftTopBwd, up, col },
+			{ rgtTopBwd, up, col },
 
-			{ rgtTopFwd, fwd },
-			{ lftTopFwd, fwd },
-			{ rgtBotFwd, fwd },
-			{ lftBotFwd, fwd },
+			{ rgtTopFwd, fwd, col },
+			{ lftTopFwd, fwd, col },
+			{ rgtBotFwd, fwd, col },
+			{ lftBotFwd, fwd, col },
 
-			{ lftTopFwd, left },
-			{ lftTopBwd, left },
-			{ lftBotFwd, left },
-			{ lftBotBwd, left },
+			{ lftTopFwd, left, col },
+			{ lftTopBwd, left, col },
+			{ lftBotFwd, left, col },
+			{ lftBotBwd, left, col },
 
-			{ rgtBotFwd, down },
-			{ lftBotFwd, down },
-			{ rgtBotBwd, down },
-			{ lftBotBwd, down },
+			{ rgtBotFwd, down, col },
+			{ lftBotFwd, down, col },
+			{ rgtBotBwd, down, col },
+			{ lftBotBwd, down, col },
 
-			{ lftTopBwd, bwd },
-			{ rgtTopBwd, bwd },
-			{ lftBotBwd, bwd },
-			{ rgtBotBwd, bwd }
+			{ lftTopBwd, bwd, col },
+			{ rgtTopBwd, bwd, col },
+			{ lftBotBwd, bwd, col },
+			{ rgtBotBwd, bwd, col }
 		};
 
 		indices.reserve(6u * 4u);

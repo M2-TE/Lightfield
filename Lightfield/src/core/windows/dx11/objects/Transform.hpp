@@ -3,30 +3,13 @@
 class Transform
 {
 public:
-	Transform(ID3D11Device* const pDevice, bool bInverted = false) : Transform(pDevice, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, bInverted) {}
-	Transform(ID3D11Device* const pDevice, DirectX::XMFLOAT3A pos, DirectX::XMFLOAT3A rot, DirectX::XMFLOAT3A scale_param, bool bInverted = false) :
+	Transform(ID3D11Device* const pDevice) : Transform(pDevice, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }) {}
+	Transform(ID3D11Device* const pDevice, DirectX::XMFLOAT3A pos, DirectX::XMFLOAT3A rot, DirectX::XMFLOAT3A scale_param) :
 		rotation(DirectX::XMQuaternionRotationRollPitchYaw(rot.x, rot.y, rot.z)),
 		position(DirectX::XMLoadFloat3A(&pos)), scale(DirectX::XMLoadFloat3A(&scale_param)),
-		bufferStruct(), bDirty(true), bInverted(bInverted)
+		bDirty(false), cbuffer(pDevice, CalcMatrix(true), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE),
+		inverseCbuffer(pDevice, CalcMatrix(false), D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE)
 	{
-		D3D11_BUFFER_DESC cbDesc = {};
-		cbDesc.ByteWidth = sizeof(BufferStruct);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		// Fill in the subresource data.
-		D3D11_SUBRESOURCE_DATA initData = {};
-		initData.pSysMem = &bufferStruct;
-		initData.SysMemPitch = 0;
-		initData.SysMemSlicePitch = 0;
-
-		// Create the buffer.
-		HRESULT hr = pDevice->CreateBuffer(&cbDesc, &initData,
-			pModelMatBuffer.GetAddressOf());
-		if (FAILED(hr)) throw std::runtime_error("Could not create transform buffer");
 	}
 	ROF_DELETE(Transform);
 
@@ -121,62 +104,45 @@ public:
 		return vec;
 	}
 
-	// Bind to render pipeline or get buffer directly
-	inline void Bind(ID3D11DeviceContext* const pDeviceContext)
+	// Get Pointer to buffers
+	inline ConstantBufferMat& GetBuffer(ID3D11DeviceContext* const pDeviceContext)
 	{
 		if (bDirty) UpdateTransformMatrix(pDeviceContext);
-
-		pDeviceContext->VSSetConstantBuffers(2u, 1u, pModelMatBuffer.GetAddressOf());
-		//pDeviceContext->PSSetConstantBuffers(0u, 1u, pModelMatBuffer.GetAddressOf());
+		return cbuffer;
 	}
-	inline ID3D11Buffer* const GetBuffer(ID3D11DeviceContext* const pDeviceContext)
+	inline ConstantBufferMat& GetInverseBuffer(ID3D11DeviceContext* const pDeviceContext)
 	{
 		if (bDirty) UpdateTransformMatrix(pDeviceContext);
-		return pModelMatBuffer.Get();
-	}
-	inline ID3D11Buffer** const GetBufferAddress(ID3D11DeviceContext* const pDeviceContext)
-	{
-		if (bDirty) UpdateTransformMatrix(pDeviceContext);
-		return pModelMatBuffer.GetAddressOf();
+		return inverseCbuffer;
 	}
 
 private:
 	inline void UpdateTransformMatrix(ID3D11DeviceContext* const pDeviceContext)
 	{
-
-		bufferStruct.ModelMatrix = DirectX::XMMatrixMultiplyTranspose(
+		cbuffer.GetData() = CalcMatrix(false);
+		cbuffer.Update(pDeviceContext);
+		inverseCbuffer.GetData() = CalcMatrix(true);
+		inverseCbuffer.Update(pDeviceContext);
+		bDirty = false;
+	}
+	inline DirectX::XMMATRIX CalcMatrix(bool bInverted = false)
+	{
+		auto mat = DirectX::XMMatrixMultiplyTranspose(
 			DirectX::XMMatrixMultiply(
 				DirectX::XMMatrixScalingFromVector(scale),
 				DirectX::XMMatrixRotationQuaternion(rotation)),
 			DirectX::XMMatrixTranslationFromVector(position));
-
-		if (bInverted)
-		{
-			// invert matrix
-			bufferStruct.ModelMatrix = DirectX::XMMatrixInverse(nullptr, bufferStruct.ModelMatrix);
-		}
-
-		D3D11_MAPPED_SUBRESOURCE mappedResource;
-		ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
-
-		//  Disable GPU access to the vertex buffer data.
-		pDeviceContext->Map(pModelMatBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedResource);
-		//  Update the vertex buffer here.
-		memcpy(mappedResource.pData, &bufferStruct, sizeof(BufferStruct));
-		//  Reenable GPU access to the vertex buffer data.
-		pDeviceContext->Unmap(pModelMatBuffer.Get(), 0u);
-
-		bDirty = false;
+		if (bInverted) mat = DirectX::XMMatrixInverse(nullptr, mat);
+		return mat;
 	}
 
 private:
-	struct BufferStruct { DirectX::XMMATRIX ModelMatrix; } bufferStruct;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> pModelMatBuffer;
-
 	DirectX::XMVECTOR position;
 	DirectX::XMVECTOR rotation; // quaternion
 	DirectX::XMVECTOR scale;
 
-	const bool bInverted; // useful for e.g. camera transforms
 	bool bDirty;
+
+	ConstantBufferMat cbuffer;
+	ConstantBufferMat inverseCbuffer;
 };

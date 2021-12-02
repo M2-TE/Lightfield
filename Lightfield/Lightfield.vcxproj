@@ -113,6 +113,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\core\utils\Helpers.hpp" />
+    <ClInclude Include="src\core\utils\Time.hpp" />
     <ClInclude Include="src\core\windows\Application.hpp" />
     <ClInclude Include="src\core\input\Input.hpp" />
     <ClInclude Include="src\core\input\Keyboard.hpp" />
@@ -121,6 +122,7 @@
     <ClInclude Include="src\core\windows\dx11\objects\Mesh.hpp" />
     <ClInclude Include="src\core\windows\dx11\objects\RenderObject.hpp" />
     <ClInclude Include="src\core\windows\dx11\objects\Transform.hpp" />
+    <ClInclude Include="src\core\windows\dx11\wrappers\ConstantBuffer.hpp" />
     <ClInclude Include="src\core\windows\dx11\wrappers\DepthStencil.hpp" />
     <ClInclude Include="src\core\windows\dx11\Renderer.hpp" />
     <ClInclude Include="src\core\windows\dx11\wrappers\Shader.hpp" />

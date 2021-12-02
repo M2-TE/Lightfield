@@ -1,6 +1,6 @@
-cbuffer CameraProjectionBuffer  : register(b0) { float4x4 ProjectionMatrix; };
+cbuffer ObjectModelBuffer       : register(b0) { float4x4 ModelMatrix; };
 cbuffer CameraViewBuffer        : register(b1) { float4x4 ViewMatrix; };
-cbuffer ObjectModelBuffer       : register(b2) { float4x4 ModelMatrix; };
+cbuffer CameraProjectionBuffer  : register(b2) { float4x4 ProjectionMatrix; };
 
 struct Input
 {

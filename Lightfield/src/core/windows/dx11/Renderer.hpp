@@ -1,10 +1,12 @@
 #pragma once
 
+
+#include "wrappers/ConstantBuffer.hpp"
 #include "wrappers/DepthStencil.hpp"
 #include "wrappers/Shader.hpp"
 #include "wrappers/Texture.hpp"
-#include "objects/RenderObject.hpp"
 #include "objects/Camera.hpp"
+#include "objects/RenderObject.hpp"
 
 class Renderer
 {
@@ -35,37 +37,22 @@ public:
 		pCamera->GetTransform().Translate(0.0f, 0.0f, -10.0f);
 
 		// create some objects to view
-		pRenderObject = std::make_unique<RenderObject>(pDevice.Get(), Primitive::Quad);
+		pRenderObject = std::make_unique<RenderObject>(pDevice.Get(), Primitive::Cube);
 	}
 	ROF_DELETE(Renderer);
 
 	void Render()
 	{
+		pRenderObject->GetTransform().RotateEuler(0.0f, Time::Get().deltaTime, 0.0f);
+
+
 		// clear textures from previous render
 		static constexpr float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		pDeviceContext->ClearRenderTargetView(pBackBufferRTV.Get(), clearColor);
 		pDepthStencil->ClearDepthStencil(pDeviceContext.Get());
 
-		if (true) {
-			// Bind constant buffers (camera)
-			ID3D11Buffer* cbuffers[] = { pCamera->GetProjectionBuffer(), pCamera->GetViewBuffer(pDeviceContext.Get()) };
-			pDeviceContext->VSSetConstantBuffers(0u, 2u, cbuffers);
-
-			// Bind shaders
-			forwardVS.Bind(pDeviceContext.Get());
-			forwardPS.Bind(pDeviceContext.Get());
-
-			// Set render target and depth stencil view for rendering
-			pDeviceContext->OMSetDepthStencilState(pDefaultDSS.Get(), 1u);
-			pDeviceContext->OMSetRenderTargets(1u, pBackBufferRTV.GetAddressOf(), pDepthStencil->GetView());
-
-			// Bind and draw all the individual objects
-			pDeviceContext->VSSetConstantBuffers(2u, 1u, pRenderObject->GetTransform().GetBufferAddress(pDeviceContext.Get()));
-			pRenderObject->Draw(pDeviceContext.Get());
-		}
-		else {
-			DrawOversizedTriangle();
-		}
+		if (true) DrawDefault();
+		else DrawOversizedTriangle();
 
 		// Present backbuffer to the screen
 		if (bVSync)pSwapChain->Present(1u, 0u);
@@ -74,6 +61,28 @@ public:
 
 private:
 	// Pipeline usage
+	void DrawDefault()
+	{
+		// Bind constant buffers (camera)
+		ID3D11Buffer* camVsBuffers[] = {
+			pCamera->GetTransform().GetInverseBuffer(pDeviceContext.Get()).GetBuffer(), // Camera's ViewMatrix
+			pCamera->GetProjectionBuffer().GetBuffer() // Camera's ProjectionMatrix
+		};
+		pDeviceContext->VSSetConstantBuffers(1u, 2u, camVsBuffers);
+		pDeviceContext->PSSetConstantBuffers(1u, 1u, pCamera->GetPosBuffer().GetBufferAddress());
+
+		// Bind shaders
+		forwardVS.Bind(pDeviceContext.Get());
+		forwardPS.Bind(pDeviceContext.Get());
+
+		// Set render target and depth stencil view for rendering
+		pDeviceContext->OMSetDepthStencilState(pDefaultDSS.Get(), 1u);
+		pDeviceContext->OMSetRenderTargets(1u, pBackBufferRTV.GetAddressOf(), pDepthStencil->GetView());
+
+		// Bind and draw all the individual objects
+		pDeviceContext->VSSetConstantBuffers(0u, 1u, pRenderObject->GetTransform().GetBuffer(pDeviceContext.Get()).GetBufferAddress());
+		pRenderObject->Draw(pDeviceContext.Get());
+	}
 	void DrawOversizedTriangle()
 	{
 		// bind shaders
