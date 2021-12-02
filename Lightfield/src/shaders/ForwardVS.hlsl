@@ -10,6 +10,7 @@ struct Input
 };
 struct Output
 {
+    float4 worldPos : WorldPos;
     float4 normal : Normal;
     float4 color : Color;
     
@@ -19,13 +20,12 @@ struct Output
 Output main(Input input)
 {
     Output output;
-    output.screenPos = mul(input.pos, ModelMatrix);
-    output.screenPos = mul(output.screenPos, ViewMatrix);
+    output.worldPos = mul(input.pos, ModelMatrix);
+    output.screenPos = mul(output.worldPos, ViewMatrix);
     output.screenPos = mul(output.screenPos, ProjectionMatrix);
     
     output.normal = mul(input.normal, ModelMatrix);
-    output.normal = mul(output.normal, ViewMatrix);
-    output.normal = mul(output.normal, ProjectionMatrix);
+    output.normal = normalize(output.normal); // potentially not necessary
     
     output.color = input.color;
 	return output;

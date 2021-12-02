@@ -78,12 +78,70 @@ public:
 			msgInfo = ReadMessages();
 			if (!msgInfo.first) return msgInfo.second;
 
-			pRenderer->Render();
+			Update();
 		}
 		return 0;
 	}
 
 private:
+	void Start()
+	{
+
+	}
+	void Update()
+	{
+		auto& cam = pRenderer->GetCamera();
+		auto& camTransform = cam.GetTransform();
+		auto* pDeviceContext = pRenderer->GetDeviceContext();
+		const float deltaTime = Time::Get().deltaTime;
+
+		// camera rotation
+		constexpr float rotationSpeed = .0025f;
+		camTransform.SetRotationEuler(input.GetMousePosY() * rotationSpeed, input.GetMousePosX() * rotationSpeed, .0f);
+
+		// movement
+		{
+			float speed = 3.0f;
+			if (input.IsKeyDown(VK_SHIFT)) speed *= 4.0f;
+			if (input.IsKeyDown(VK_CONTROL)) speed *= .5f;
+			const float magn = deltaTime * speed;
+			if (input.IsKeyDown('W'))
+			{
+				const auto fwd = camTransform.GetForward();
+				camTransform.Translate(fwd.x * magn, fwd.y * magn, fwd.z * magn);
+			}
+			else if (input.IsKeyDown('S'))
+			{
+				const auto fwd = camTransform.GetForward();
+				camTransform.Translate(fwd.x * -magn, fwd.y * -magn, fwd.z * -magn);
+			}
+			if (input.IsKeyDown('A'))
+			{
+				const auto right = camTransform.GetRight();
+				camTransform.Translate(right.x * -magn, right.y * -magn, right.z * -magn);
+			}
+			else if (input.IsKeyDown('D'))
+			{
+				const auto right = camTransform.GetRight();
+				camTransform.Translate(right.x * magn, right.y * magn, right.z * magn);
+			}
+			if (input.IsKeyDown('Q'))
+			{
+				const auto up = camTransform.GetUp();
+				camTransform.Translate(up.x * -magn, up.y * -magn, up.z * -magn);
+			}
+			else if (input.IsKeyDown('E'))
+			{
+				const auto up = camTransform.GetUp();
+				camTransform.Translate(up.x * magn, up.y * magn, up.z * magn);
+			}
+		}
+
+		cam.UpdatePos(pDeviceContext);
+		Time::Get().Mark();
+		pRenderer->Render();
+	}
+
 	std::pair<bool, int> ReadMessages()
 	{
 		MSG msg;

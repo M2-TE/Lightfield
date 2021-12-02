@@ -43,7 +43,7 @@ public:
 
 	void Render()
 	{
-		pRenderObject->GetTransform().RotateEuler(0.0f, Time::Get().deltaTime, 0.0f);
+		//pRenderObject->GetTransform().RotateEuler(0.0f, Time::Get().deltaTime, 0.0f);
 
 
 		// clear textures from previous render
@@ -58,6 +58,8 @@ public:
 		if (bVSync)pSwapChain->Present(1u, 0u);
 		else pSwapChain->Present(0u, DXGI_PRESENT_ALLOW_TEARING);
 	}
+	Camera& GetCamera() { return *pCamera; }
+	ID3D11DeviceContext* GetDeviceContext() { return pDeviceContext.Get(); }
 
 private:
 	// Pipeline usage

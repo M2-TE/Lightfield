@@ -42,14 +42,14 @@ private:
 	void SetAsCube(ID3D11Device* const pDevice)
 	{
 		DirectX::XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		static constexpr float p = 1.0f, z = 0.0f, n = -1.0f;
+		static constexpr float p = .5f, z = 0.0f, n = -.5f;
 		// Normals
-		static constexpr DirectX::XMFLOAT4 right	= { p, z, z, z };
-		static constexpr DirectX::XMFLOAT4 up		= { z, p, z, z };
-		static constexpr DirectX::XMFLOAT4 fwd		= { z, z, p, z };
-		static constexpr DirectX::XMFLOAT4 left		= { n, z, z, z };
-		static constexpr DirectX::XMFLOAT4 down		= { z, n, z, z };
-		static constexpr DirectX::XMFLOAT4 bwd		= { z, z, n, z };
+		static constexpr DirectX::XMFLOAT4 right	= { 1.0f, z, z, z };
+		static constexpr DirectX::XMFLOAT4 up		= { z, 1.0f, z, z };
+		static constexpr DirectX::XMFLOAT4 fwd		= { z, z, 1.0f, z };
+		static constexpr DirectX::XMFLOAT4 left		= { -1.0f, z, z, z };
+		static constexpr DirectX::XMFLOAT4 down		= { z, -1.0f, z, z };
+		static constexpr DirectX::XMFLOAT4 bwd		= { z, z, -1.0f, z };
 		// Vertex Positions
 		static constexpr DirectX::XMFLOAT4 lftTopFwd = { n, p, p, 1.0f };
 		static constexpr DirectX::XMFLOAT4 rgtTopFwd = { p, p, p, 1.0f };
