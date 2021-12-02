@@ -108,7 +108,7 @@ private:
 		DirectX::XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 		float depth = 0.0f;
-		float p = 1.0f, n = -1.0f;
+		float p = .5f, n = -.5f;
 		DirectX::XMFLOAT4 topLeft =		{ n, p, depth, 1.0f };
 		DirectX::XMFLOAT4 topRight =	{ p, p, depth, 1.0f };
 		DirectX::XMFLOAT4 botLeft =		{ n, n, depth, 1.0f };

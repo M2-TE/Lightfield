@@ -12,7 +12,7 @@ struct Output
 #define NUM_LIGHTS 1u
 static const float3 lightPosArr[NUM_LIGHTS] =
 {
-    float3(5.0f, 2.0f, -10.0f)
+    float3(3.0f, 1.0f, -5.0f)
 };
 
 Output main(Input input)
@@ -26,10 +26,12 @@ Output main(Input input)
     [unroll]
     for (uint i = 0u; i < NUM_LIGHTS; i++)
     {
-        float3 lightDir = normalize(lightPosArr[0] - input.worldPos.xyz);
-        lightIntensity += max(dot(input.normal.xyz, lightDir), 0.0f);
+        float3 lightDir = lightPosArr[0] - input.worldPos.xyz;
+        float dist = length(lightDir);
+        float atten = 1.0f / pow(dist, 0.3f);
+        lightIntensity += max(dot(input.normal.xyz, normalize(lightDir)), 0.0f) * atten;
     }
-    output.color *= min(lightIntensity, 1.0f);
+    output.color *= max(min(lightIntensity, 1.0f), 0.15f); // 0.1f ambient light
     
     return output;
 }

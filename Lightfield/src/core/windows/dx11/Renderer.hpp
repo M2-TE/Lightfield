@@ -34,10 +34,6 @@ public:
 
 		// create camera and move it back a bit to see all the objects
 		pCamera = std::make_unique<Camera>(pDevice.Get());
-		pCamera->GetTransform().Translate(0.0f, 0.0f, -10.0f);
-
-		// create some objects to view
-		pRenderObject = std::make_unique<RenderObject>(pDevice.Get(), Primitive::Cube);
 	}
 	ROF_DELETE(Renderer);
 
@@ -58,7 +54,10 @@ public:
 		if (bVSync)pSwapChain->Present(1u, 0u);
 		else pSwapChain->Present(0u, DXGI_PRESENT_ALLOW_TEARING);
 	}
+
 	Camera& GetCamera() { return *pCamera; }
+	std::vector<std::unique_ptr<RenderObject>>& GetRenderObjects() { return renderObjects; }
+	ID3D11Device* GetDevice() { return pDevice.Get(); }
 	ID3D11DeviceContext* GetDeviceContext() { return pDeviceContext.Get(); }
 
 private:
@@ -82,8 +81,10 @@ private:
 		pDeviceContext->OMSetRenderTargets(1u, pBackBufferRTV.GetAddressOf(), pDepthStencil->GetView());
 
 		// Bind and draw all the individual objects
-		pDeviceContext->VSSetConstantBuffers(0u, 1u, pRenderObject->GetTransform().GetBuffer(pDeviceContext.Get()).GetBufferAddress());
-		pRenderObject->Draw(pDeviceContext.Get());
+		for (auto cur = renderObjects.begin(); cur != renderObjects.end(); cur++) {
+			pDeviceContext->VSSetConstantBuffers(0u, 1u, (*cur)->GetTransform().GetBuffer(pDeviceContext.Get()).GetBufferAddress());
+			(*cur)->Draw(pDeviceContext.Get());
+		}
 	}
 	void DrawOversizedTriangle()
 	{
@@ -237,5 +238,5 @@ private:
 
 	// Render objects
 	std::unique_ptr<Camera> pCamera;
-	std::unique_ptr<RenderObject> pRenderObject;
+	std::vector<std::unique_ptr<RenderObject>> renderObjects;
 };

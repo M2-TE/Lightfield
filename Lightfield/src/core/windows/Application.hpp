@@ -70,10 +70,9 @@ public:
 
 	int Run()
 	{
-		bRunning = true;
-
+		Start();
 		std::pair<bool, int> msgInfo;
-		while (bRunning)
+		while (true)
 		{
 			msgInfo = ReadMessages();
 			if (!msgInfo.first) return msgInfo.second;
@@ -86,9 +85,34 @@ public:
 private:
 	void Start()
 	{
+		auto* pDevice = pRenderer->GetDevice();
+		auto& renderObjects = pRenderer->GetRenderObjects();
+
+		// move cam a bit further back to see the entire scene
+		pRenderer->GetCamera().GetTransform().Translate(0.0f, 0.0f, -10.0f);
+
+		// create some objects to view
+		{
+			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, Primitive::Cube));
+			auto& transform = renderObjects.back()->GetTransform();
+			transform.Translate(-3.0f, -3.0f, 0.0f);
+		}
+		{
+			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, Primitive::Quad));
+			auto& transform = renderObjects.back()->GetTransform();
+			transform.Translate(0.0f, -3.5f, 0.0f);
+			transform.RotateEuler(static_cast<float>(M_PI_2), 0.0f, 0.0f);
+			transform.SetScale(10.0f, 10.0f, 1.0f);
+		}
 
 	}
 	void Update()
+	{
+		Time::Get().Mark();
+		HandleInput();
+		pRenderer->Render();
+	}
+	void HandleInput()
 	{
 		auto& cam = pRenderer->GetCamera();
 		auto& camTransform = cam.GetTransform();
@@ -136,10 +160,7 @@ private:
 				camTransform.Translate(up.x * magn, up.y * magn, up.z * magn);
 			}
 		}
-
 		cam.UpdatePos(pDeviceContext);
-		Time::Get().Mark();
-		pRenderer->Render();
 	}
 
 	std::pair<bool, int> ReadMessages()
@@ -301,7 +322,6 @@ private:
 	const HINSTANCE hInstance;
 	HWND hWnd;
 
-	bool bRunning = false;
 	std::unique_ptr<Renderer> pRenderer;
 	Input input;
 };
