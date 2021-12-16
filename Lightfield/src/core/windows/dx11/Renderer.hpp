@@ -41,7 +41,6 @@ public:
 	{
 		//pRenderObject->GetTransform().RotateEuler(0.0f, Time::Get().deltaTime, 0.0f);
 
-
 		// clear textures from previous render
 		static constexpr float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		pDeviceContext->ClearRenderTargetView(pBackBufferRTV.Get(), clearColor);

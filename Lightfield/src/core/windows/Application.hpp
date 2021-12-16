@@ -59,6 +59,9 @@ public:
 		pRenderer = std::make_unique<Renderer>(hWnd, width, height);
 		input.hWnd = hWnd;
 
+		input.SetCursorConfinement(true);
+		input.SetCursorVisibility(false);
+
 		SetWindowPos(hWnd, HWND_TOP, width / 4u, height / 4u, width, height, 0u);
 		ShowWindow(hWnd, SW_SHOWDEFAULT);
 	}
