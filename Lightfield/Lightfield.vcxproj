@@ -61,7 +61,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>src\pch;src\core;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src\pch;src\core;vendor</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -128,6 +128,7 @@
     <ClInclude Include="src\core\windows\dx11\wrappers\Shader.hpp" />
     <ClInclude Include="src\core\windows\dx11\wrappers\Texture.hpp" />
     <ClInclude Include="src\pch\pch.hpp" />
+    <ClInclude Include="vendor\tinyobjloader\tiny_obj_loader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\main.cpp" />

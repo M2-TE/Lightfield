@@ -1,0 +1,3 @@
+[submodule "Lightfield/vendor/tinyobjloader"]
+	path = Lightfield/vendor/tinyobjloader
+	url = https://github.com/tinyobjloader/tinyobjloader.git
