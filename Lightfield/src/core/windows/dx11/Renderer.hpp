@@ -36,7 +36,7 @@ public:
 		pCamera = std::make_unique<Camera>(pDevice.Get());
 
 		// Model loading
-		pModel = std::make_unique<Model>("tree_obj.obj");
+		pModel = std::make_unique<Model>("PLANTS_ON_TABLE_10k");
 	}
 	ROF_DELETE(Renderer);
 
