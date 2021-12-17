@@ -25,11 +25,6 @@
 #include "utils/Helpers.hpp"
 #include "utils/Time.hpp"
 
-// 3rd-party libs
-#define TINYOBJLOADER_IMPLEMENTATION
-#define TINYOBJLOADER_USE_MAPBOX_EARCUT
-#include "tinyobjloader/tiny_obj_loader.h"
-
 #ifdef Win32
 	#include <Windows.h>
 

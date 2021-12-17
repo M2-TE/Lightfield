@@ -1,12 +1,12 @@
 #pragma once
 
-
 #include "wrappers/ConstantBuffer.hpp"
 #include "wrappers/DepthStencil.hpp"
 #include "wrappers/Shader.hpp"
 #include "wrappers/Texture.hpp"
 #include "objects/Camera.hpp"
 #include "objects/RenderObject.hpp"
+#include "objects/Model.hpp"
 
 class Renderer
 {
@@ -34,6 +34,9 @@ public:
 
 		// create camera and move it back a bit to see all the objects
 		pCamera = std::make_unique<Camera>(pDevice.Get());
+
+		// Model loading
+		pModel = std::make_unique<Model>("tree_obj.obj");
 	}
 	ROF_DELETE(Renderer);
 
@@ -238,4 +241,5 @@ private:
 	// Render objects
 	std::unique_ptr<Camera> pCamera;
 	std::vector<std::unique_ptr<RenderObject>> renderObjects;
+	std::unique_ptr<Model> pModel;
 };
