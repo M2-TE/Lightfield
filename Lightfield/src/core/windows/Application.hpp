@@ -107,6 +107,11 @@ private:
 			transform.RotateEuler(static_cast<float>(M_PI_2), 0.0f, 0.0f);
 			transform.SetScale(10.0f, 10.0f, 1.0f);
 		}
+		{
+			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, "PLANTS_ON_TABLE_10k"));
+			auto& transform = renderObjects.back()->GetTransform();
+			transform.Translate(0.0f, -3.5f, 0.0f);
+		}
 
 	}
 	void Update()

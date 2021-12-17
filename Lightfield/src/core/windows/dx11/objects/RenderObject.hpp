@@ -7,6 +7,7 @@ class RenderObject
 {
 public:
 	RenderObject(ID3D11Device* const pDevice, Primitive primitive) : transform(pDevice), mesh(pDevice, primitive) {}
+	RenderObject(ID3D11Device* const pDevice, std::string fileName) : transform(pDevice), mesh(pDevice, fileName) {}
 	~RenderObject() = default;
 	ROF_DELETE(RenderObject);
 

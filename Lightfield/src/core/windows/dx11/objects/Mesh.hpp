@@ -1,5 +1,10 @@
 #pragma once
 
+// TODO: pack this into .cpp to hide from codebase
+#define TINYOBJLOADER_IMPLEMENTATION
+//#define TINYOBJLOADER_USE_MAPBOX_EARCUT
+#include "tinyobjloader/tiny_obj_loader.h"
+
 enum class Primitive { Cube, Sphere, Quad };
 class Mesh
 {
@@ -13,6 +18,11 @@ public:
 			case Primitive::Quad: SetAsQuad(pDevice); break;
 		}
 
+		CreateBuffer(pDevice);
+	}
+	Mesh(ID3D11Device* const pDevice, std::string fileName) {
+
+		LoadObj(fileName);
 		CreateBuffer(pDevice);
 	}
 	~Mesh() = default;
@@ -39,6 +49,76 @@ public:
 	}
 
 private:
+	void LoadObj(std::string fileName) {
+
+		tinyobj::ObjReaderConfig readerConfig;
+		readerConfig.mtl_search_path = "./"; // Path to material files
+
+		fileName = "data/objs/" + fileName + "/" + fileName + ".obj";
+
+		tinyobj::ObjReader reader;
+		bool success = reader.ParseFromFile(fileName, readerConfig);
+		const std::string& error = reader.Error();
+		const std::string& warning = reader.Warning();
+		if (!success) __debugbreak(); // TODO: put actual warning/error message into console
+
+		auto& attrib = reader.GetAttrib();
+		auto& shapes = reader.GetShapes();
+		auto& materials = reader.GetMaterials();
+
+		// TODO: reserve space for vertices, indices
+		// TODO: use the sample values to actually fill the vertex and index buffers
+
+		// Loop over shapes
+		for (size_t s = 0; s < shapes.size(); s++) {
+			// Loop over faces(polygon)
+			size_t index_offset = 0;
+			for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
+				size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
+
+				// Loop over vertices in the face.
+				for (size_t v = 0; v < fv; v++) {
+
+					// access to vertex
+					tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+					Vertex vertex = {};
+
+					vertex.pos.x = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
+					vertex.pos.y = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
+					vertex.pos.z = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
+					vertex.pos.w = 1.0f;
+
+					// Check if `normal_index` is zero or positive. negative = no normal data
+					if (idx.normal_index >= 0) {
+						vertex.norm.x = attrib.normals[3 * size_t(idx.normal_index) + 0];
+						vertex.norm.y = attrib.normals[3 * size_t(idx.normal_index) + 1];
+						vertex.norm.z = attrib.normals[3 * size_t(idx.normal_index) + 2];
+						vertex.norm.w = 0.0f;
+					}
+
+					// Check if `texcoord_index` is zero or positive. negative = no texcoord data
+					if (idx.texcoord_index >= 0) {
+						// TODO
+						tinyobj::real_t tx = attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
+						tinyobj::real_t ty = attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
+					}
+
+					// Optional: vertex colors
+					vertex.col = { 1.0f, 1.0f, 1.0f, 1.0f };
+					// tinyobj::real_t red   = attrib.colors[3*size_t(idx.vertex_index)+0];
+					// tinyobj::real_t green = attrib.colors[3*size_t(idx.vertex_index)+1];
+					// tinyobj::real_t blue  = attrib.colors[3*size_t(idx.vertex_index)+2];
+
+					vertices.push_back(vertex);
+					indices.push_back(vertices.size() - 1);
+				}
+				index_offset += fv;
+
+				// per-face material
+				shapes[s].mesh.material_ids[f];
+			}
+		}
+	}
 	void SetAsCube(ID3D11Device* const pDevice)
 	{
 		DirectX::XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
