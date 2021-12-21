@@ -81,29 +81,51 @@ private:
     }
 
 public:
-    TexFormatConverter& GetInstance()
+    [[nodiscard]] static TexFormatConverter& GetInstance()
     {
         static TexFormatConverter instance;
         return instance;
         // make optinally threadsafe? using defines
     }
+    [[nodiscard]] DXGI_FORMAT GetDXGIFormat(WICPixelFormatGUID guid) const noexcept
+    {
+        // try to find dxgi format with guid
+        auto pFormat = translationMap.find(guid);
+        if (pFormat != translationMap.end()) return pFormat->second;
+        else {
+            // if none is found, attempt to convert guid
+            auto pConv = conversionMap.find(guid);
+            if (pConv != conversionMap.end()) {
+                // find format with now converted guid
+                pFormat = translationMap.find(pConv->second);
+                if (pFormat != translationMap.end()) return pFormat->second;
+            }
+        }
+
+        // when all else fails, just return default unknown format
+        return DXGI_FORMAT_UNKNOWN;
+    }
 
 private:
-    struct GUIDHasher
-    {
-        inline std::size_t operator()(const GUID& guid) const noexcept
-        {
-            std::ostringstream oss;
-            oss << guid.Data4;
+    struct GUIDHash {
+        inline std::size_t operator()(const WICPixelFormatGUID& guid) const noexcept {
+            struct GUIDVals {
+                size_t a;
+                size_t b;
+            } const guidVals = *reinterpret_cast<const GUIDVals*>(&guid);
 
             size_t res = 17;
-            res = res * 31 + std::hash<unsigned long>()(guid.Data1);
-            res = res * 31 + std::hash<unsigned short>()(guid.Data2);
-            res = res * 31 + std::hash<unsigned short>()(guid.Data3);
-            res = res * 31 + std::hash<std::string>()(oss.str());
+            res = res * 31 + std::hash<size_t>()(guidVals.a);
+            res = res * 31 + std::hash<size_t>()(guidVals.b);
             return res;
         }
     };
-    const std::unordered_map<GUID, DXGI_FORMAT, GUIDHasher> translationMap;
-    const std::unordered_map<GUID, GUID, GUIDHasher> conversionMap;
+    struct GUIDEqual {
+        inline bool operator()(const WICPixelFormatGUID& lhs, const WICPixelFormatGUID& rhs) const noexcept {
+            return lhs == rhs;
+        }
+    };
+    const std::unordered_map<WICPixelFormatGUID, DXGI_FORMAT, GUIDHash, GUIDEqual> translationMap;
+    const std::unordered_map<WICPixelFormatGUID, WICPixelFormatGUID, GUIDHash, GUIDEqual> conversionMap;
+    // ordered vs unordered map?
 };
