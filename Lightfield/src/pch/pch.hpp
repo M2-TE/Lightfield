@@ -21,16 +21,13 @@
 #include <bitset>
 #include <optional>
 
-// utils
-#include "utils/Helpers.hpp"
-#include "utils/Time.hpp"
-
 #ifdef Win32
 	#include <Windows.h>
 
 	// DirectX 11
 	#pragma comment(lib, "d3d11.lib")
 	#include <d3d11.h>
+	#include <wincodec.h> // file conversion codecs
 	#include <wrl.h> // smart pointers for COM objects
 	#include <DirectXMath.h>
 
@@ -46,3 +43,8 @@
 	#pragma comment(lib, "D3DCompiler.lib")
 	#include <d3dcompiler.h>
 #endif
+
+// utils
+#include "utils/Helpers.hpp"
+#include "utils/Time.hpp"
+#include "utils/TempStringConverter.hpp"

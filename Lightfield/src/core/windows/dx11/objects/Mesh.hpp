@@ -22,7 +22,7 @@ public:
 	}
 	Mesh(ID3D11Device* const pDevice, std::string fileName) {
 
-		LoadObj(fileName);
+		LoadObj(pDevice, fileName);
 		CreateBuffer(pDevice);
 	}
 	~Mesh() = default;
@@ -49,18 +49,23 @@ public:
 	}
 
 private:
-	void LoadObj(std::string fileName) {
+	void LoadObj(ID3D11Device* const pDevice, std::string fileName) 
+	{
 
 		tinyobj::ObjReaderConfig readerConfig;
 		readerConfig.mtl_search_path = "./"; // Path to material files
 
-		fileName = "data/objs/" + fileName + "/" + fileName + ".obj";
+		std::ostringstream oss;
+		oss << "data/objs/" << fileName << "/" << fileName;
 
 		tinyobj::ObjReader reader;
-		bool success = reader.ParseFromFile(fileName, readerConfig);
+		bool success = reader.ParseFromFile(oss.str() + ".obj", readerConfig);
 		const std::string& error = reader.Error();
 		const std::string& warning = reader.Warning();
-		if (!success) __debugbreak(); // TODO: put actual warning/error message into console
+		//if (!success) throw std::runtime_error(error); // temp disabled, obj missing atm!
+
+		Texture2D tex = {};
+		tex.CreateTextureJPG(pDevice, s2ws(oss.str() + ".jpg"));
 
 		auto& attrib = reader.GetAttrib();
 		auto& shapes = reader.GetShapes();
@@ -115,7 +120,7 @@ private:
 				index_offset += fv;
 
 				// per-face material
-				shapes[s].mesh.material_ids[f];
+				shapes[s].mesh.material_ids[f]; // whats this for
 			}
 		}
 	}
