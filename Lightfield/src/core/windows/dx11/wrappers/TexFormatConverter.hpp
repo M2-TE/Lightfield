@@ -41,9 +41,9 @@ private:
             { GUID_WICPixelFormat16bppBGR555,           GUID_WICPixelFormat16bppBGRA5551 }, // DXGI_FORMAT_B5G5R5A1_UNORM 
             { GUID_WICPixelFormat32bppBGR101010,        GUID_WICPixelFormat32bppRGBA1010102 }, // DXGI_FORMAT_R10G10B10A2_UNORM
 
-            { GUID_WICPixelFormat24bppBGR,              GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+            { GUID_WICPixelFormat24bppBGR,              GUID_WICPixelFormat32bppBGRA }, // DXGI_FORMAT_B8G8R8A8_UNORM 
             { GUID_WICPixelFormat24bppRGB,              GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
-            { GUID_WICPixelFormat32bppPBGRA,            GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+            { GUID_WICPixelFormat32bppPBGRA,            GUID_WICPixelFormat32bppBGRA }, // DXGI_FORMAT_B8G8R8A8_UNORM 
             { GUID_WICPixelFormat32bppPRGBA,            GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
 
             { GUID_WICPixelFormat48bppRGB,              GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
@@ -127,5 +127,4 @@ private:
     };
     const std::unordered_map<WICPixelFormatGUID, DXGI_FORMAT, GUIDHash, GUIDEqual> translationMap;
     const std::unordered_map<WICPixelFormatGUID, WICPixelFormatGUID, GUIDHash, GUIDEqual> conversionMap;
-    // ordered vs unordered map?
 };

@@ -98,14 +98,31 @@ public:
 		if (FAILED(hr)) throw std::runtime_error("Pixel byte stride retrieval failed");
 		stride /= 8u;
 
+
 		UINT width, height;
 		pFrame->GetSize(&width, &height);
 		UINT rowStride = stride * width;
 		UINT totalStride = rowStride * height;
 		std::vector<BYTE> buffer(totalStride);
 		hr = pFrame->CopyPixels(NULL, rowStride, totalStride, buffer.data());
-
 		if (FAILED(hr)) throw std::runtime_error("Failed copying image data to memory");
+
+		// round up stride to the nearest possible val for dx11 (24b -> 32b)
+		if (stride == 3u) {
+			std::vector<BYTE> cpy(buffer);
+			buffer.resize(width * height * 4u);
+			auto* curCpy = cpy.begin()._Ptr;
+			auto* cur = buffer.begin()._Ptr;
+			auto* end = buffer.end()._Ptr;
+
+			// insert padding to match dx11 format
+			while (cur < end) {
+				*cur++ = *curCpy++; // r or b
+				*cur++ = *curCpy++; // g
+				*cur++ = *curCpy++; // b or r
+				*cur++ = UCHAR_MAX;	// a
+			}
+		}
 
 		// Create texture
 		D3D11_TEXTURE2D_DESC desc;
