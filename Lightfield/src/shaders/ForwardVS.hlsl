@@ -7,12 +7,14 @@ struct Input
     float4 pos : Position;
     float4 normal : Normal;
     float4 color : Color;
+    float4 uvCoords : UvCoords;
 };
 struct Output
 {
     float4 worldPos : WorldPos;
     float4 normal : Normal;
     float4 color : Color;
+    float4 uvCoords : UvCoords;
     
     float4 screenPos : SV_Position;
 };
@@ -28,5 +30,8 @@ Output main(Input input)
     output.normal = normalize(output.normal); // potentially not necessary
     
     output.color = input.color;
+
+    output.uvCoords = input.uvCoords;
+
 	return output;
 }

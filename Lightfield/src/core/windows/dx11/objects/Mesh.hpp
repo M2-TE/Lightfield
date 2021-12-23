@@ -105,16 +105,15 @@ private:
 
 					// Check if `texcoord_index` is zero or positive. negative = no texcoord data
 					if (idx.texcoord_index >= 0) {
-						// TODO
-						tinyobj::real_t tx = attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
-						tinyobj::real_t ty = attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
+						vertex.uvCoords.x = attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
+						vertex.uvCoords.y = attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
+						vertex.uvCoords.z = 1.0f;
 					}
 
-					// Optional: vertex colors
-					vertex.col = { 1.0f, 1.0f, 1.0f, 1.0f };
-					// tinyobj::real_t red   = attrib.colors[3*size_t(idx.vertex_index)+0];
-					// tinyobj::real_t green = attrib.colors[3*size_t(idx.vertex_index)+1];
-					// tinyobj::real_t blue  = attrib.colors[3*size_t(idx.vertex_index)+2];
+					vertex.col.x = attrib.colors[3 * size_t(idx.vertex_index) + 0]; // r
+					vertex.col.x = attrib.colors[3 * size_t(idx.vertex_index) + 1]; // g
+					vertex.col.x = attrib.colors[3 * size_t(idx.vertex_index) + 2]; // b
+					vertex.col.w = 1.0f;
 
 					submeshPtrs.back()->vertices.push_back(vertex);
 					submeshPtrs.back()->indices.push_back(static_cast<Index>(submeshPtrs.back()->vertices.size()) - 1); // duplicate array access!

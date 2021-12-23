@@ -3,6 +3,7 @@ struct Input
     float4 worldPos : WorldPos;
     float4 normal : Normal;
     float4 color : Color;
+    float4 uvCoords : UvCoords;
 };
 struct Output
 {
@@ -15,10 +16,14 @@ static const float3 lightPosArr[NUM_LIGHTS] =
     float3(3.0f, 1.0f, -5.0f)
 };
 
+SamplerState samplerState : register(s0);
+Texture2D diffuseTexture : register(t0);
+
 Output main(Input input)
 {
     Output output;
-    output.color = input.color;
+
+    output.color = lerp(input.color, diffuseTexture.Sample(samplerState, input.uvCoords.xy), input.uvCoords.z);
     
     // calc lighting
     float lightIntensity = 0.0f;

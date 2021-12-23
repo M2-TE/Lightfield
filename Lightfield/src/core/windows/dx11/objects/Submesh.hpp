@@ -13,7 +13,13 @@ struct TexturePack {
 	std::unique_ptr<Texture2D> reflection_tex;
 };
 // Vertex type used for standard meshes
-struct Vertex { DirectX::XMFLOAT4 pos; DirectX::XMFLOAT4 norm; DirectX::XMFLOAT4 col; };
+struct Vertex 
+{ 
+	DirectX::XMFLOAT4 pos; 
+	DirectX::XMFLOAT4 norm; 
+	DirectX::XMFLOAT4 col; 
+	DirectX::XMFLOAT4 uvCoords;
+};
 // Default index type
 typedef uint32_t Index;
 
