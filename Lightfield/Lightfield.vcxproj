@@ -123,6 +123,7 @@
     <ClInclude Include="src\core\windows\dx11\objects\Camera.hpp" />
     <ClInclude Include="src\core\windows\dx11\objects\Mesh.hpp" />
     <ClInclude Include="src\core\windows\dx11\objects\RenderObject.hpp" />
+    <ClInclude Include="src\core\windows\dx11\objects\Submesh.hpp" />
     <ClInclude Include="src\core\windows\dx11\objects\Transform.hpp" />
     <ClInclude Include="src\core\windows\dx11\wrappers\ConstantBuffer.hpp" />
     <ClInclude Include="src\core\windows\dx11\wrappers\DepthStencil.hpp" />

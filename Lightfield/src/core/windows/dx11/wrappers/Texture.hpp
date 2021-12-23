@@ -142,11 +142,14 @@ public:
 		initData.pSysMem = buffer.data();
 		initData.SysMemPitch = rowStride;
 		initData.SysMemSlicePitch = totalStride;
-
 		CreateTexture(pDevice, desc, &initData);
 
-
-		// TODO: also create SRV here
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format = format;
+		srvDesc.Texture2D.MipLevels = 1u;
+		srvDesc.Texture2D.MostDetailedMip = 0u;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		CreateSRV(pDevice, srvDesc);
 	}
 	void CreateTexture(ID3D11Device* const pDevice, D3D11_TEXTURE2D_DESC desc, D3D11_SUBRESOURCE_DATA* data = nullptr)
 	{

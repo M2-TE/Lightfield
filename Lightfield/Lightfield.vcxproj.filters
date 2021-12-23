@@ -78,6 +78,9 @@
     <ClInclude Include="src\core\windows\dx11\wrappers\TexFormatConverter.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\windows\dx11\objects\Submesh.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\pch\pch.cpp">

@@ -4,6 +4,7 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 //#define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "tinyobjloader/tiny_obj_loader.h"
+#include "Submesh.hpp"
 
 enum class Primitive { Cube, Sphere, Quad };
 class Mesh
@@ -11,19 +12,24 @@ class Mesh
 public:
 	Mesh(ID3D11Device* const pDevice, Primitive primitive) 
 	{
+		submeshPtrs.emplace_back(std::make_unique<Submesh>());
+
 		switch (primitive)
 		{
-			case Primitive::Cube: SetAsCube(pDevice); break;
-			case Primitive::Sphere: SetAsSphere(pDevice); break;
-			case Primitive::Quad: SetAsQuad(pDevice); break;
+			case Primitive::Cube: submeshPtrs.front()->SetAsCube(pDevice); break;
+			case Primitive::Sphere: submeshPtrs.front()->SetAsSphere(pDevice); break;
+			case Primitive::Quad: submeshPtrs.front()->SetAsQuad(pDevice); break;
 		}
 
-		CreateBuffer(pDevice);
+		submeshPtrs.front()->CreateBuffer(pDevice);
 	}
 	Mesh(ID3D11Device* const pDevice, std::string fileName) {
 
 		LoadObj(pDevice, fileName);
-		CreateBuffer(pDevice);
+
+		for (auto cur = submeshPtrs.begin(), end = submeshPtrs.end(); cur < end; cur++) {
+			(*cur)->CreateBuffer(pDevice);
+		}
 	}
 	~Mesh() = default;
 	ROF_DELETE(Mesh);
@@ -31,51 +37,65 @@ public:
 public:
 	void Draw(ID3D11DeviceContext* const pDeviceContext)
 	{
-		static constexpr UINT offset = 0u;
-		static constexpr UINT startSlot = 0u;
-		static constexpr UINT numBuffers = 1u;
-
-		pDeviceContext->IASetVertexBuffers(
-			startSlot, numBuffers,
-			pVertexBuffer.GetAddressOf(),
-			&vertexSize, &offset);
-
-		pDeviceContext->IASetIndexBuffer(
-			pIndexBuffer.Get(),
-			DXGI_FORMAT_R32_UINT,
-			offset);
-
-		pDeviceContext->DrawIndexed(indexCount, 0u, 0u);
+		for (auto cur = submeshPtrs.begin(), end = submeshPtrs.end(); cur < end; cur++) {
+			(*cur)->Draw(pDeviceContext);
+		}
 	}
-
 private:
 	void LoadObj(ID3D11Device* const pDevice, std::string fileName) 
 	{
+		std::ostringstream oss;
+		oss << "data/objs/" << fileName << "/";
+		std::string filePath = oss.str();
 
 		tinyobj::ObjReaderConfig readerConfig;
-		readerConfig.mtl_search_path = "./"; // Path to material files
-
-		std::ostringstream oss;
-		oss << "data/objs/" << fileName << "/" << fileName;
+		readerConfig.mtl_search_path = filePath; // Path to material files
+		readerConfig.triangulate = false;
 
 		tinyobj::ObjReader reader;
-		bool success = reader.ParseFromFile(oss.str() + ".obj", readerConfig);
+		oss << fileName << ".obj";
+		bool success = reader.ParseFromFile(oss.str(), readerConfig);
 		const std::string& error = reader.Error();
 		const std::string& warning = reader.Warning();
-		//if (!success) throw std::runtime_error(error); // temp disabled, obj missing atm!
+		if (!success) throw std::runtime_error(error);
 
-		Texture2D tex = {};
-		tex.CreateTextureJPG(pDevice, s2ws(oss.str() + ".jpg"));
 
 		auto& attrib = reader.GetAttrib();
 		auto& shapes = reader.GetShapes();
 		auto& materials = reader.GetMaterials();
 
+		// Load Textures
+		struct TexturePack { 
+			std::unique_ptr<Texture2D> alpha_tex;
+			std::unique_ptr<Texture2D> ambient_tex;
+			std::unique_ptr<Texture2D> bump_tex;
+			std::unique_ptr<Texture2D> diffuse_tex;
+			std::unique_ptr<Texture2D> displacement_tex;
+			std::unique_ptr<Texture2D> emissive_tex;
+			std::unique_ptr<Texture2D> metallic_tex;
+			std::unique_ptr<Texture2D> normal_tex;
+			std::unique_ptr<Texture2D> reflection_tex; };
+		std::vector<TexturePack> textures(materials.size());
+		auto* curMat = materials.begin()._Ptr;
+		auto* cur = textures.begin()._Ptr;
+		auto* end = textures.end()._Ptr;
+		for (; cur < end; cur++, curMat++) {
+			if (!curMat->diffuse_texname.empty()) {
+				cur->diffuse_tex = std::make_unique<Texture2D>();
+				cur->diffuse_tex->CreateTextureJPG(pDevice, s2ws(filePath + curMat->diffuse_texname));
+			}
+		}
+
 		// TODO: reserve space for vertices, indices
-		// TODO: use the sample values to actually fill the vertex and index buffers
+		// TODO: multiple "meshes" for each shape
+		// at the very least, need multiple materials (textures etc) and multiple meshes for shapes
+
+		submeshPtrs.reserve(shapes.size());
 
 		// Loop over shapes
 		for (size_t s = 0; s < shapes.size(); s++) {
+			submeshPtrs.emplace_back(std::make_unique<Submesh>());
+
 			// Loop over faces(polygon)
 			size_t index_offset = 0;
 			for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
@@ -114,153 +134,17 @@ private:
 					// tinyobj::real_t green = attrib.colors[3*size_t(idx.vertex_index)+1];
 					// tinyobj::real_t blue  = attrib.colors[3*size_t(idx.vertex_index)+2];
 
-					vertices.push_back(vertex);
-					indices.push_back(vertices.size() - 1);
+					submeshPtrs.back()->vertices.push_back(vertex);
+					submeshPtrs.back()->indices.push_back(static_cast<Index>(submeshPtrs.back()->vertices.size()) - 1); // duplicate array access!
 				}
 				index_offset += fv;
 
 				// per-face material
-				shapes[s].mesh.material_ids[f]; // whats this for
+				shapes[s].mesh.material_ids[f];
 			}
-		}
-	}
-	void SetAsCube(ID3D11Device* const pDevice)
-	{
-		DirectX::XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		static constexpr float p = .5f, z = 0.0f, n = -.5f;
-		// Normals
-		static constexpr DirectX::XMFLOAT4 right	= { 1.0f, z, z, z };
-		static constexpr DirectX::XMFLOAT4 up		= { z, 1.0f, z, z };
-		static constexpr DirectX::XMFLOAT4 fwd		= { z, z, 1.0f, z };
-		static constexpr DirectX::XMFLOAT4 left		= { -1.0f, z, z, z };
-		static constexpr DirectX::XMFLOAT4 down		= { z, -1.0f, z, z };
-		static constexpr DirectX::XMFLOAT4 bwd		= { z, z, -1.0f, z };
-		// Vertex Positions
-		static constexpr DirectX::XMFLOAT4 lftTopFwd = { n, p, p, 1.0f };
-		static constexpr DirectX::XMFLOAT4 rgtTopFwd = { p, p, p, 1.0f };
-		static constexpr DirectX::XMFLOAT4 lftTopBwd = { n, p, n, 1.0f };
-		static constexpr DirectX::XMFLOAT4 rgtTopBwd = { p, p, n, 1.0f };
-		static constexpr DirectX::XMFLOAT4 lftBotFwd = { n, n, p, 1.0f };
-		static constexpr DirectX::XMFLOAT4 rgtBotFwd = { p, n, p, 1.0f };
-		static constexpr DirectX::XMFLOAT4 lftBotBwd = { n, n, n, 1.0f };
-		static constexpr DirectX::XMFLOAT4 rgtBotBwd = { p, n, n, 1.0f };
-
-		vertices = {
-
-			{ rgtTopBwd, right, col },
-			{ rgtTopFwd, right, col },
-			{ rgtBotBwd, right, col },
-			{ rgtBotFwd, right, col },
-
-			{ lftTopFwd, up, col },
-			{ rgtTopFwd, up, col },
-			{ lftTopBwd, up, col },
-			{ rgtTopBwd, up, col },
-
-			{ rgtTopFwd, fwd, col },
-			{ lftTopFwd, fwd, col },
-			{ rgtBotFwd, fwd, col },
-			{ lftBotFwd, fwd, col },
-
-			{ lftTopFwd, left, col },
-			{ lftTopBwd, left, col },
-			{ lftBotFwd, left, col },
-			{ lftBotBwd, left, col },
-
-			{ rgtBotFwd, down, col },
-			{ lftBotFwd, down, col },
-			{ rgtBotBwd, down, col },
-			{ lftBotBwd, down, col },
-
-			{ lftTopBwd, bwd, col },
-			{ rgtTopBwd, bwd, col },
-			{ lftBotBwd, bwd, col },
-			{ rgtBotBwd, bwd, col }
-		};
-
-		indices.reserve(6u * 4u);
-		for (UINT i = 0u; i < 6u * 4u; i += 4u) {
-			indices.insert(indices.end(), { 0 + i, 1 + i, 2 + i, 1 + i, 3 + i, 2 + i });
-		}
-	}
-	void SetAsSphere(ID3D11Device* const pDevice)
-	{
-		// TODO
-	}
-	void SetAsQuad(ID3D11Device* const pDevice)
-	{
-		DirectX::XMFLOAT4 norm = { 0.0f, 0.0f, -1.0f, 0.0f };
-		DirectX::XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-		float depth = 0.0f;
-		float p = .5f, n = -.5f;
-		DirectX::XMFLOAT4 topLeft =		{ n, p, depth, 1.0f };
-		DirectX::XMFLOAT4 topRight =	{ p, p, depth, 1.0f };
-		DirectX::XMFLOAT4 botLeft =		{ n, n, depth, 1.0f };
-		DirectX::XMFLOAT4 botRight =	{ p, n, depth, 1.0f };
-
-		vertices = {
-			{ topLeft, norm, col },
-			{ topRight, norm, col },
-			{ botLeft, norm, col },
-			{ botRight, norm, col }
-		};
-		indices = {
-			0, 1, 2,
-			1, 3, 2
-		};
-	}
-
-	void CreateBuffer(ID3D11Device* const pDevice)
-	{
-		D3D11_BUFFER_DESC bufferDesc = {};
-		D3D11_SUBRESOURCE_DATA bufferData = {};
-
-		// Fill vertex buffer
-		{
-			vertexCount = static_cast<UINT>(vertices.size());
-
-			bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
-			bufferDesc.ByteWidth = vertexSize * vertexCount;
-			bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-			bufferDesc.CPUAccessFlags = 0u;
-			bufferDesc.MiscFlags = 0u;
-
-			bufferData.pSysMem = vertices.data();
-			bufferData.SysMemPitch = 0u;
-			bufferData.SysMemSlicePitch = 0u;
-
-			pDevice->CreateBuffer(&bufferDesc, &bufferData, &pVertexBuffer);
-		}
-
-		// Fill index buffer
-		{
-			indexCount = static_cast<UINT>(indices.size());
-
-			// Fill in a buffer description.
-			bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
-			bufferDesc.ByteWidth = sizeof(Index) * indexCount;
-			bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-			bufferDesc.CPUAccessFlags = 0u;
-			bufferDesc.MiscFlags = 0u;
-
-			// Define the resource data.
-			bufferData.pSysMem = indices.data();
-			bufferData.SysMemPitch = 0u;
-			bufferData.SysMemSlicePitch = 0u;
-
-			// Create the buffer with the device.
-			pDevice->CreateBuffer(&bufferDesc, &bufferData, &pIndexBuffer);
 		}
 	}
 
 private:
-	struct Vertex { DirectX::XMFLOAT4 pos; DirectX::XMFLOAT4 norm; DirectX::XMFLOAT4 col; };
-	typedef uint32_t Index;
-
-	Microsoft::WRL::ComPtr<ID3D11Buffer> pVertexBuffer, pIndexBuffer;
-	std::vector<Vertex> vertices;
-	std::vector<Index> indices;
-	static constexpr UINT vertexSize = sizeof(Vertex);
-	UINT vertexCount, indexCount;
+	std::vector<std::unique_ptr<Submesh>> submeshPtrs;
 };
