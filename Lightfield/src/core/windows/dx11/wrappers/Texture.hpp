@@ -95,8 +95,8 @@ public:
 
 		UINT stride;
 		hr = pPixelFormatInfo->GetBitsPerPixel(&stride);
-		if (FAILED(hr)) throw std::runtime_error("Pixel byte stride retrieval failed");
-		stride /= 8u;
+		if (FAILED(hr)) throw std::runtime_error("Pixel stride retrieval failed");
+		stride /= 8u; // convert from bits to bytes (compiler should use bitshifting here)
 
 
 		UINT width, height;
@@ -107,10 +107,18 @@ public:
 		hr = pFrame->CopyPixels(NULL, rowStride, totalStride, buffer.data());
 		if (FAILED(hr)) throw std::runtime_error("Failed copying image data to memory");
 
-		// round up stride to the nearest possible val for dx11 (24b -> 32b)
-		if (stride == 3u) {
+		// round up stride to the nearest possible val for dx11 (24bpp -> 32bpp) bpp = bits per pixel
+		if (stride == 3u) { // TODO: this handles 24bpp formats, what about 96bpp and others?
+
+			// adjust strides according to new format
+			stride = 4u;
+			rowStride = stride * width;
+			totalStride = rowStride * height;
+
+			// copy original buffer into seperate vector for iteration
+			// then resize new vector according to new strides
 			std::vector<BYTE> cpy(buffer);
-			buffer.resize(width * height * 4u);
+			buffer.resize(totalStride);
 			auto* curCpy = cpy.begin()._Ptr;
 			auto* cur = buffer.begin()._Ptr;
 			auto* end = buffer.end()._Ptr;

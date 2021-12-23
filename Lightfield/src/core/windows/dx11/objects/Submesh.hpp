@@ -1,5 +1,17 @@
 #pragma once
 
+// container to hold all potential textures for objects
+struct TexturePack {
+	std::unique_ptr<Texture2D> alpha_tex;
+	std::unique_ptr<Texture2D> ambient_tex;
+	std::unique_ptr<Texture2D> bump_tex;
+	std::unique_ptr<Texture2D> diffuse_tex;
+	std::unique_ptr<Texture2D> displacement_tex;
+	std::unique_ptr<Texture2D> emissive_tex;
+	std::unique_ptr<Texture2D> metallic_tex;
+	std::unique_ptr<Texture2D> normal_tex;
+	std::unique_ptr<Texture2D> reflection_tex;
+};
 // Vertex type used for standard meshes
 struct Vertex { DirectX::XMFLOAT4 pos; DirectX::XMFLOAT4 norm; DirectX::XMFLOAT4 col; };
 // Default index type
@@ -16,6 +28,7 @@ struct Submesh
 		static constexpr UINT offset = 0u;
 		static constexpr UINT startSlot = 0u;
 		static constexpr UINT numBuffers = 1u;
+		static constexpr UINT vertexSize = sizeof(Vertex);
 
 		pDeviceContext->IASetVertexBuffers(
 			startSlot, numBuffers,
@@ -27,6 +40,9 @@ struct Submesh
 			DXGI_FORMAT_R32_UINT,
 			offset);
 
+		if (texturePack.diffuse_tex.get() != nullptr) {
+			pDeviceContext->PSSetShaderResources(0u, 1u, texturePack.diffuse_tex->GetSRVAddress());
+		}
 		pDeviceContext->DrawIndexed(indexCount, 0u, 0u);
 	}
 
@@ -124,6 +140,7 @@ struct Submesh
 
 		// Fill vertex buffer
 		{
+			static constexpr UINT vertexSize = sizeof(Vertex);
 			vertexCount = static_cast<UINT>(vertices.size());
 
 			bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
@@ -163,6 +180,6 @@ struct Submesh
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pVertexBuffer, pIndexBuffer;
 	std::vector<Vertex> vertices;
 	std::vector<Index> indices;
-	static constexpr UINT vertexSize = sizeof(Vertex);
 	UINT vertexCount, indexCount;
+	TexturePack texturePack;
 };

@@ -64,37 +64,19 @@ private:
 		auto& shapes = reader.GetShapes();
 		auto& materials = reader.GetMaterials();
 
-		// Load Textures
-		struct TexturePack { 
-			std::unique_ptr<Texture2D> alpha_tex;
-			std::unique_ptr<Texture2D> ambient_tex;
-			std::unique_ptr<Texture2D> bump_tex;
-			std::unique_ptr<Texture2D> diffuse_tex;
-			std::unique_ptr<Texture2D> displacement_tex;
-			std::unique_ptr<Texture2D> emissive_tex;
-			std::unique_ptr<Texture2D> metallic_tex;
-			std::unique_ptr<Texture2D> normal_tex;
-			std::unique_ptr<Texture2D> reflection_tex; };
-		std::vector<TexturePack> textures(materials.size());
-		auto* curMat = materials.begin()._Ptr;
-		auto* cur = textures.begin()._Ptr;
-		auto* end = textures.end()._Ptr;
-		for (; cur < end; cur++, curMat++) {
-			if (!curMat->diffuse_texname.empty()) {
-				cur->diffuse_tex = std::make_unique<Texture2D>();
-				cur->diffuse_tex->CreateTextureJPG(pDevice, s2ws(filePath + curMat->diffuse_texname));
-			}
-		}
-
 		// TODO: reserve space for vertices, indices
-		// TODO: multiple "meshes" for each shape
-		// at the very least, need multiple materials (textures etc) and multiple meshes for shapes
 
 		submeshPtrs.reserve(shapes.size());
 
 		// Loop over shapes
 		for (size_t s = 0; s < shapes.size(); s++) {
 			submeshPtrs.emplace_back(std::make_unique<Submesh>());
+
+			// this assumes that each submesh/shape has a unique material assigned to it
+			if (!materials[s].diffuse_texname.empty()) {
+				submeshPtrs.back()->texturePack.diffuse_tex = std::make_unique<Texture2D>();
+				submeshPtrs.back()->texturePack.diffuse_tex->CreateTextureJPG(pDevice, s2ws(filePath + materials[s].diffuse_texname));
+			}
 
 			// Loop over faces(polygon)
 			size_t index_offset = 0;
