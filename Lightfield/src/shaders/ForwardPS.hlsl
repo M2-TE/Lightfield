@@ -34,7 +34,7 @@ Output main(Input input)
         float3 lightDir = lightPosArr[0] - input.worldPos.xyz;
         float dist = length(lightDir);
         float atten = 1.0f / pow(dist, 0.3f);
-        lightIntensity += max(dot(input.normal.xyz, normalize(lightDir)), 0.0f) * atten;
+        lightIntensity += max(dot(input.normal.xyz, normalize(lightDir)), 0.1f) * atten;
     }
     output.color *= max(min(lightIntensity, 1.0f), 0.15f); // 0.1f ambient light
     

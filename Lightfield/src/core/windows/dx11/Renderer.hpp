@@ -187,6 +187,7 @@ private:
 		D3D11_RASTERIZER_DESC rastDesc = {};
 		rastDesc.FillMode = D3D11_FILL_SOLID;
 		rastDesc.CullMode = D3D11_CULL_BACK;
+		rastDesc.CullMode = D3D11_CULL_NONE;
 		rastDesc.FrontCounterClockwise = FALSE;
 		rastDesc.DepthBias = 0;
 		rastDesc.SlopeScaledDepthBias = 0.0f;

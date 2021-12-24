@@ -2,7 +2,7 @@
 
 // TODO: pack this into .cpp to hide from codebase
 #define TINYOBJLOADER_IMPLEMENTATION
-//#define TINYOBJLOADER_USE_MAPBOX_EARCUT
+#define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "tinyobjloader/tiny_obj_loader.h"
 #include "Submesh.hpp"
 
@@ -50,7 +50,7 @@ private:
 
 		tinyobj::ObjReaderConfig readerConfig;
 		readerConfig.mtl_search_path = filePath; // Path to material files
-		readerConfig.triangulate = false;
+		//readerConfig.triangulate = false;
 
 		tinyobj::ObjReader reader;
 		oss << fileName << ".obj";
@@ -70,6 +70,7 @@ private:
 
 		// Loop over shapes
 		for (size_t s = 0; s < shapes.size(); s++) {
+
 			submeshPtrs.emplace_back(std::make_unique<Submesh>());
 
 			// this assumes that each submesh/shape has a unique material assigned to it
@@ -81,7 +82,11 @@ private:
 			// Loop over faces(polygon)
 			size_t index_offset = 0;
 			for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
+				
 				size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
+
+				// per-face material
+				auto& mat = materials[shapes[s].mesh.material_ids[f]];
 
 				// Loop over vertices in the face.
 				for (size_t v = 0; v < fv; v++) {
@@ -92,27 +97,37 @@ private:
 
 					vertex.pos.x = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
 					vertex.pos.y = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
-					vertex.pos.z = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
+					vertex.pos.z = -attrib.vertices[3 * size_t(idx.vertex_index) + 2]; // convert to dx11 axis
 					vertex.pos.w = 1.0f;
 
 					// Check if `normal_index` is zero or positive. negative = no normal data
 					if (idx.normal_index >= 0) {
 						vertex.norm.x = attrib.normals[3 * size_t(idx.normal_index) + 0];
 						vertex.norm.y = attrib.normals[3 * size_t(idx.normal_index) + 1];
-						vertex.norm.z = attrib.normals[3 * size_t(idx.normal_index) + 2];
+						vertex.norm.z = -attrib.normals[3 * size_t(idx.normal_index) + 2]; // convert to dx11 axis
 						vertex.norm.w = 0.0f;
 					}
 
 					// Check if `texcoord_index` is zero or positive. negative = no texcoord data
 					if (idx.texcoord_index >= 0) {
 						vertex.uvCoords.x = attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
-						vertex.uvCoords.y = attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
-						vertex.uvCoords.z = 1.0f;
+						vertex.uvCoords.y = 1.0f - attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
+
+						// only use texture sampling when the coordinates are valid
+						// uvs higher than 1 mean to repeat something or something or something idk it works like this
+						vertex.uvCoords.z = vertex.uvCoords.x <= 1.0f && vertex.uvCoords.y <= 1.0f ? 1.0f : 0.0f;
 					}
 
-					vertex.col.x = attrib.colors[3 * size_t(idx.vertex_index) + 0]; // r
-					vertex.col.x = attrib.colors[3 * size_t(idx.vertex_index) + 1]; // g
-					vertex.col.x = attrib.colors[3 * size_t(idx.vertex_index) + 2]; // b
+					if (false) {
+						// not using per-vertex colors atm
+						vertex.col.x = attrib.colors[3 * size_t(idx.vertex_index) + 0]; // r
+						vertex.col.x = attrib.colors[3 * size_t(idx.vertex_index) + 1]; // g
+						vertex.col.x = attrib.colors[3 * size_t(idx.vertex_index) + 2]; // b
+					}
+
+					vertex.col.x = mat.diffuse[0];
+					vertex.col.y = mat.diffuse[1];
+					vertex.col.z = mat.diffuse[2];
 					vertex.col.w = 1.0f;
 
 					submeshPtrs.back()->vertices.push_back(vertex);
@@ -120,8 +135,6 @@ private:
 				}
 				index_offset += fv;
 
-				// per-face material
-				shapes[s].mesh.material_ids[f];
 			}
 		}
 	}
