@@ -55,7 +55,14 @@ public:
 	ROF_DELETE(Texture2D);
 
 public:
-	void CreateTextureJPG(ID3D11Device* const pDevice, std::wstring filepath)
+	void CreateTexture(ID3D11Device* const pDevice, D3D11_TEXTURE2D_DESC desc, D3D11_SUBRESOURCE_DATA* data = nullptr)
+	{
+		pTex.Reset();
+		descTex = desc;
+		HRESULT hr = pDevice->CreateTexture2D(&descTex.value(), data, pTex.GetAddressOf());
+		if (FAILED(hr)) throw std::runtime_error("Texture creation failed");
+	}
+	void CreateTextureFromJPG(ID3D11Device* const pDevice, std::wstring filepath)
 	{
 		Microsoft::WRL::ComPtr<IWICImagingFactory> pImgFactory;
 		HRESULT hr = CoCreateInstance(
@@ -159,13 +166,16 @@ public:
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		CreateSRV(pDevice, srvDesc);
 	}
-	void CreateTexture(ID3D11Device* const pDevice, D3D11_TEXTURE2D_DESC desc, D3D11_SUBRESOURCE_DATA* data = nullptr)
+	void WrapTexture(ID3D11Texture2D* pTexture)
 	{
-		pTex.Reset();
-		descTex = desc;
-		HRESULT hr = pDevice->CreateTexture2D(&descTex.value(), data, pTex.GetAddressOf());
-		if (FAILED(hr)) throw std::runtime_error("Texture creation failed");
+		pTex = pTexture;
 	}
+	void SaveTextureToFile(ID3D11DeviceContext* const pDeviceContext, std::wstring fileName, const GUID& guidContainerFormat = GUID_ContainerFormatJpeg)
+	{
+		HRESULT hr = DirectX::SaveWICTextureToFile(pDeviceContext, pTex.Get(), guidContainerFormat, fileName.c_str());
+		if (FAILED(hr)) throw std::runtime_error("Screenshot failed");
+	}
+
 	inline constexpr D3D11_SUBRESOURCE_DATA SubresTemplate(UINT bytesPerPixel, UINT width)
 	{
 		D3D11_SUBRESOURCE_DATA data = {};

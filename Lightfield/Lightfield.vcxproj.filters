@@ -98,5 +98,6 @@
     <FxCompile Include="src\shaders\DefaultPS.hlsl" />
     <FxCompile Include="src\shaders\ForwardVS.hlsl" />
     <FxCompile Include="src\shaders\ForwardPS.hlsl" />
+    <FxCompile Include="src\shaders\ScreenshotPS.hlsl" />
   </ItemGroup>
 </Project>

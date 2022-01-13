@@ -76,7 +76,7 @@ private:
 			// this assumes that each submesh/shape has a unique material assigned to it
 			if (!materials[s].diffuse_texname.empty()) {
 				submeshPtrs.back()->texturePack.diffuse_tex = std::make_unique<Texture2D>();
-				submeshPtrs.back()->texturePack.diffuse_tex->CreateTextureJPG(pDevice, s2ws(filePath + materials[s].diffuse_texname));
+				submeshPtrs.back()->texturePack.diffuse_tex->CreateTextureFromJPG(pDevice, s2ws(filePath + materials[s].diffuse_texname));
 			}
 
 			// Loop over faces(polygon)
