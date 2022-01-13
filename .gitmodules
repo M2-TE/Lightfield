@@ -1,3 +1,6 @@
 [submodule "Lightfield/vendor/tinyobjloader"]
 	path = Lightfield/vendor/tinyobjloader
 	url = https://github.com/tinyobjloader/tinyobjloader.git
+[submodule "Lightfield/vendor/directxtk"]
+	path = Lightfield/vendor/directxtk
+	url = https://github.com/microsoft/DirectXTK.git
