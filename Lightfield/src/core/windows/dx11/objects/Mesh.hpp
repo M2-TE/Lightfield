@@ -50,7 +50,7 @@ private:
 
 		tinyobj::ObjReaderConfig readerConfig;
 		readerConfig.mtl_search_path = filePath; // Path to material files
-		//readerConfig.triangulate = false;
+		//readerConfig.triangulate = true;
 
 		tinyobj::ObjReader reader;
 		oss << fileName << ".obj";
