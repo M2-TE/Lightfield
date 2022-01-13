@@ -120,9 +120,9 @@ private:
 		pDeviceContext->Draw(3u, zero);
 
 		// save gpu textures to disk in .jpg format
-		backBuffer.SaveTextureToFile(pDeviceContext.Get(), L"color.jpg");
-		screenshotDepth.SaveTextureToFile(pDeviceContext.Get(), L"depth.jpg");
-		screenshotStencil.SaveTextureToFile(pDeviceContext.Get(), L"stencil.jpg");
+		backBuffer.SaveTextureToFile(pDeviceContext.Get(), L"screenshots/color.jpg");
+		screenshotDepth.SaveTextureToFile(pDeviceContext.Get(), L"screenshots/depth.jpg");
+		screenshotStencil.SaveTextureToFile(pDeviceContext.Get(), L"screenshots/stencil.jpg");
 
 		// unbind stencil buffer to be able to use it again
 		ID3D11ShaderResourceView* pSRVsNull[2] = { nullptr, nullptr };
