@@ -42,7 +42,7 @@ public:
 		pDepthStencil->ClearDepthStencil(pDeviceContext.Get());
 
 		DrawDefault();
-		if(true) DrawScreenshot();
+		//if(true) DrawScreenshot();
 
 		// Present backbuffer to the screen
 		if (bVSync)pSwapChain->Present(1u, 0u);

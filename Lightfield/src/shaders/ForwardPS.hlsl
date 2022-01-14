@@ -13,7 +13,7 @@ struct Output
 #define NUM_LIGHTS 1u
 static const float3 lightPosArr[NUM_LIGHTS] =
 {
-    float3(3.0f, 1.0f, -5.0f)
+    float3(0.0f, 0.0f, 0.0f)
 };
 
 SamplerState samplerState : register(s0);

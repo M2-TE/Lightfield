@@ -50,7 +50,7 @@ private:
 
 		tinyobj::ObjReaderConfig readerConfig;
 		readerConfig.mtl_search_path = filePath; // Path to material files
-		//readerConfig.triangulate = true;
+		readerConfig.triangulate = true;
 
 		tinyobj::ObjReader reader;
 		oss << fileName << ".obj";
@@ -58,7 +58,6 @@ private:
 		const std::string& error = reader.Error();
 		const std::string& warning = reader.Warning();
 		if (!success) throw std::runtime_error(error);
-
 
 		auto& attrib = reader.GetAttrib();
 		auto& shapes = reader.GetShapes();
@@ -74,9 +73,10 @@ private:
 			submeshPtrs.emplace_back(std::make_unique<Submesh>());
 
 			// this assumes that each submesh/shape has a unique material assigned to it
-			if (!materials[s].diffuse_texname.empty()) {
+			auto matID = shapes[s].mesh.material_ids[0];
+			if (!materials[matID].diffuse_texname.empty()) {
 				submeshPtrs.back()->texturePack.diffuse_tex = std::make_unique<Texture2D>();
-				submeshPtrs.back()->texturePack.diffuse_tex->CreateTextureFromJPG(pDevice, s2ws(filePath + materials[s].diffuse_texname));
+				submeshPtrs.back()->texturePack.diffuse_tex->CreateTextureFromJPG(pDevice, s2ws(filePath + materials[matID].diffuse_texname));
 			}
 
 			// Loop over faces(polygon)
@@ -106,6 +106,9 @@ private:
 						vertex.norm.y = attrib.normals[3 * size_t(idx.normal_index) + 1];
 						vertex.norm.z = -attrib.normals[3 * size_t(idx.normal_index) + 2]; // convert to dx11 axis
 						vertex.norm.w = 0.0f;
+					} 
+					else {
+
 					}
 
 					// Check if `texcoord_index` is zero or positive. negative = no texcoord data
@@ -124,10 +127,12 @@ private:
 						vertex.col.x = attrib.colors[3 * size_t(idx.vertex_index) + 1]; // g
 						vertex.col.x = attrib.colors[3 * size_t(idx.vertex_index) + 2]; // b
 					}
+					else {
+						vertex.col.x = mat.diffuse[0];
+						vertex.col.y = mat.diffuse[1];
+						vertex.col.z = mat.diffuse[2];
+					}
 
-					vertex.col.x = mat.diffuse[0];
-					vertex.col.y = mat.diffuse[1];
-					vertex.col.z = mat.diffuse[2];
 					vertex.col.w = 1.0f;
 
 					submeshPtrs.back()->vertices.push_back(vertex);
