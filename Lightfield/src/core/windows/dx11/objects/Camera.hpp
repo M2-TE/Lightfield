@@ -7,7 +7,7 @@ class Camera
 public:
 	Camera(ID3D11Device* const pDevice) : transform(pDevice), posCbuffer(pDevice),
 		cbuffer(
-			pDevice, DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovLH(1.25f, 1.777777f, 0.1f, 1000.0f)),
+			pDevice, DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovLH(1.25f, 1.777777f, 0.1f, 100.0f)),
 			D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE)
 	{
 	}

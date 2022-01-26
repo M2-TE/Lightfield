@@ -16,7 +16,7 @@ Output main(float4 screenPos : SV_Position) : SV_TARGET
     uint stencil = stencilBuffer[texPos].g; // use SampleCmp instead
 
     // make depth more easily visible
-    depth = pow(depth, 3);
+    //depth = pow(depth, 5);
 
     Output output;
     output.Depth = float4(depth, depth, depth, 1.0f);

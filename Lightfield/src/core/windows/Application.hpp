@@ -121,21 +121,20 @@ private:
 			transform.RotateEuler(0.0f, static_cast<float>(M_PI_2) - 0.25f, 0.0f);
 			transform.SetScale(1.0f, 1.0f, 1.0f);
 		}
-		{
-			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, "Medieval_boxes"));
-			auto& transform = renderObjects.back()->GetTransform();
-			transform.Translate(-4.0f, -3.49f, -4.0f);
-			transform.RotateEuler(0.0f, static_cast<float>(M_PI_2) * 0.5f, 0.0f);
-			transform.SetScale(2.0f, 2.0f, 2.0f);
-		}
-		{
-			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, "Patio_Set"));
-			auto& transform = renderObjects.back()->GetTransform();
-			transform.Translate(3.0f, -3.49f, -3.5f);
-			transform.RotateEuler(0.0f, static_cast<float>(M_PI_2) + 0.1f, 0.0f);
-			transform.SetScale(0.01f, 0.01f, 0.01f);
-		}
-
+		//{
+		//	renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, "Medieval_boxes"));
+		//	auto& transform = renderObjects.back()->GetTransform();
+		//	transform.Translate(-4.0f, -3.49f, -4.0f);
+		//	transform.RotateEuler(0.0f, static_cast<float>(M_PI_2) * 0.5f, 0.0f);
+		//	transform.SetScale(2.0f, 2.0f, 2.0f);
+		//}
+		//{
+		//	renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, "Patio_Set"));
+		//	auto& transform = renderObjects.back()->GetTransform();
+		//	transform.Translate(3.0f, -3.49f, -3.5f);
+		//	transform.RotateEuler(0.0f, static_cast<float>(M_PI_2) + 0.1f, 0.0f);
+		//	transform.SetScale(0.01f, 0.01f, 0.01f);
+		//}
 	}
 	void Update()
 	{
@@ -145,10 +144,18 @@ private:
 	}
 	void HandleInput()
 	{
+		if (input.IsKeyPressed(VK_F9)) pRenderer->Screenshot();
+		HandleCameraMovement();
+
+		// flush one-frame inputs "pressed" and "released"
+		input.kbd.FlushOldInputs();
+		input.mouse.FlushOldInputs();
+	}
+	void HandleCameraMovement()
+	{
+		const float deltaTime = Time::Get().deltaTime;
 		auto& cam = pRenderer->GetCamera();
 		auto& camTransform = cam.GetTransform();
-		auto* pDeviceContext = pRenderer->GetDeviceContext();
-		const float deltaTime = Time::Get().deltaTime;
 
 		// camera rotation
 		constexpr float rotationSpeed = .0025f;
@@ -191,7 +198,7 @@ private:
 				camTransform.Translate(up.x * magn, up.y * magn, up.z * magn);
 			}
 		}
-		cam.UpdatePos(pDeviceContext);
+		cam.UpdatePos(pRenderer->GetDeviceContext());
 	}
 
 	std::pair<bool, int> ReadMessages()
@@ -208,11 +215,6 @@ private:
 			DispatchMessage(&msg);
 		}
 		return std::make_pair(true, 0);
-	}
-	void FlushInputs()
-	{
-		input.kbd.FlushOldInputs();
-		input.mouse.FlushOldInputs();
 	}
 
 	static LRESULT CALLBACK WindowProcSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept

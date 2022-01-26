@@ -10,6 +10,9 @@
 class Renderer
 {
 public:
+	enum class RenderMode { Default };
+
+public:
 	Renderer(HWND hWnd, UINT width, UINT height)
 	{
 		this->width = static_cast<UINT>(width);
@@ -17,14 +20,14 @@ public:
 
 		CreateDeviceSwapchain(hWnd);
 		AccessBackbuffer();
-
+		
 		CreateViewport();
 		CreateRasterizer();
 		CreateDepthStencilStates();
 		CreateDepthStencil();
 		CreateSamplerState();
 		CreateScreenshotBuffers();
-
+		
 		LoadShaders();
 
 		// create camera and move it back a bit to see all the objects
@@ -32,21 +35,22 @@ public:
 	}
 	ROF_DELETE(Renderer);
 
-	void Render()
+	void Render(RenderMode renderMode = RenderMode::Default)
 	{
-		//pRenderObject->GetTransform().RotateEuler(0.0f, Time::Get().deltaTime, 0.0f);
-
 		// clear textures from previous render
 		static constexpr float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		pDeviceContext->ClearRenderTargetView(backBuffer.GetRTV(), clearColor);
 		pDepthStencil->ClearDepthStencil(pDeviceContext.Get());
 
 		DrawDefault();
-		//if(true) DrawScreenshot();
 
 		// Present backbuffer to the screen
 		if (bVSync)pSwapChain->Present(1u, 0u);
 		else pSwapChain->Present(0u, DXGI_PRESENT_ALLOW_TEARING);
+	}
+	void Screenshot()
+	{
+		DrawScreenshot();
 	}
 
 	Camera& GetCamera() { return *pCamera; }
