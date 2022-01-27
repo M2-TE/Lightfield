@@ -102,12 +102,11 @@ public:
 
 		// set screenshot render targets and depth stencil view for rendering
 		pDeviceContext->OMSetDepthStencilState(pNoDepthDSS.Get(), 1u);
-		ID3D11RenderTargetView* rtvs[2] = { simulatedDepth.GetRTV(), simulatedStencil.GetRTV() };
-		pDeviceContext->OMSetRenderTargets(2u, rtvs, nullptr);
+		pDeviceContext->OMSetRenderTargets(1u, simulatedDepth.GetRTVAddress(), nullptr);
 
 		// set depth stencil as shader resource to be written to a texture
-		ID3D11ShaderResourceView* pSRVs[2] = { pDepthStencil->GetDepthSRV(), pDepthStencil->GetStencilSRV() };
-		pDeviceContext->PSSetShaderResources(0u, 2u, pSRVs);
+		ID3D11ShaderResourceView* pSRVs[1] = { pDepthStencil->GetDepthSRV()};
+		pDeviceContext->PSSetShaderResources(0u, 1u, pSRVs);
 		pDeviceContext->PSSetConstantBuffers(0u, 1u, pCamera->GetTransform().GetInverseBuffer(pDeviceContext.Get()).GetBufferAddress());
 
 		DrawOversizedTriangle();
@@ -115,12 +114,11 @@ public:
 		// save gpu textures to disk in .jpg format
 		simulatedColor.SaveTextureToFile(pDeviceContext.Get(), L"screenshots/simulatedColor.jpg");
 		simulatedDepth.SaveTextureToFile(pDeviceContext.Get(), L"screenshots/simulatedDepth.jpg");
-		simulatedStencil.SaveTextureToFile(pDeviceContext.Get(), L"screenshots/simulatedStencil.jpg");
 		outputDepth.SaveTextureToFile(pDeviceContext.Get(), L"screenshots/outputDepth.jpg");
 		
 		// unbind stencil buffer to be able to use it again
-		ID3D11ShaderResourceView* pSRVsNull[2] = { nullptr, nullptr };
-		pDeviceContext->PSSetShaderResources(0u, 2u, pSRVsNull);
+		ID3D11ShaderResourceView* pSRVsNull[1] = { nullptr };
+		pDeviceContext->PSSetShaderResources(0u, 1u, pSRVsNull);
 	}
 
 	Camera& GetCamera() { return *pCamera; }
@@ -318,8 +316,6 @@ private:
 
 		simulatedDepth.CreateTexture(pDevice.Get(), texDesc);
 		simulatedDepth.CreateRTV(pDevice.Get(), rtvDesc);
-		simulatedStencil.CreateTexture(pDevice.Get(), texDesc);
-		simulatedStencil.CreateRTV(pDevice.Get(), rtvDesc);
 
 		texDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 		simulatedColor.CreateTexture(pDevice.Get(), texDesc);
@@ -345,7 +341,7 @@ private:
 	}
 
 public:
-		enum class PresentationMode { Default };
+		enum class PresentationMode : UINT { Default };
 		PresentationMode presentationMode;
 private:
 	bool bVSync = true;
@@ -366,7 +362,6 @@ private:
 	Texture2D backBuffer; // swapchain backbuffer
 	Texture2D simulatedColor;
 	Texture2D simulatedDepth;
-	Texture2D simulatedStencil;
 	Texture2D outputDepth;
 
 	// Shaders
