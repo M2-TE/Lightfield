@@ -140,7 +140,10 @@ private:
 	{
 		Time::Get().Mark();
 		HandleInput();
-		pRenderer->Render();
+
+		pRenderer->SimulateScene();
+		pRenderer->DeduceDepth();
+		pRenderer->Present();
 	}
 	void HandleInput()
 	{
@@ -216,7 +219,6 @@ private:
 		}
 		return std::make_pair(true, 0);
 	}
-
 	static LRESULT CALLBACK WindowProcSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
 	{
 		if (msg == WM_NCCREATE)
