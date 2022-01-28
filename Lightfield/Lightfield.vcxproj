@@ -120,6 +120,7 @@
     <ClInclude Include="src\core\input\Keyboard.hpp" />
     <ClInclude Include="src\core\input\Mouse.hpp" />
     <ClInclude Include="src\core\windows\dx11\AntiAliasing.hpp" />
+    <ClInclude Include="src\core\windows\dx11\Lightfield.hpp" />
     <ClInclude Include="src\core\windows\dx11\objects\Camera.hpp" />
     <ClInclude Include="src\core\windows\dx11\objects\Mesh.hpp" />
     <ClInclude Include="src\core\windows\dx11\objects\RenderObject.hpp" />

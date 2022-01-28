@@ -3,8 +3,13 @@
 class DepthStencil
 {
 public:
-	DepthStencil(ID3D11Device* const pDevice, UINT width, UINT height)
+	DepthStencil() = default;
+	~DepthStencil() = default;
+	ROF_DELETE(DepthStencil);
+
+	void Init(ID3D11Device* const pDevice, UINT width, UINT height)
 	{
+
 		HRESULT hr;
 
 		// create depth stensil texture

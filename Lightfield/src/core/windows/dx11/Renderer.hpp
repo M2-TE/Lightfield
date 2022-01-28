@@ -6,9 +6,12 @@
 #include "wrappers/Texture.hpp"
 #include "objects/Camera.hpp"
 #include "objects/RenderObject.hpp"
+#include "Lightfield.hpp"
 
 class Renderer
 {
+public:
+	enum class PresentationMode : UINT; // forward declare
 public:
 	Renderer(HWND hWnd, UINT width, UINT height)
 	{
@@ -24,14 +27,19 @@ public:
 		CreateDepthStencil();
 		CreateSamplerState();
 		CreateTextureBuffers();
+		CreateConstantBuffer();
 		
 		LoadShaders();
+
+		// create lightfield with different camera offsets and textures
+		lightfield.Init(pDevice.Get(), width, height);
 
 		// create camera and move it back a bit to see all the objects
 		pCamera = std::make_unique<Camera>(pDevice.Get());
 	}
 	ROF_DELETE(Renderer);
 
+	// TODO: write simulated depth during this pass
 	void SimulateScene()
 	{
 		Clear();
@@ -49,12 +57,17 @@ public:
 
 		// Set render target and depth stencil view for rendering
 		pDeviceContext->OMSetDepthStencilState(pDefaultDSS.Get(), 1u);
-		pDeviceContext->OMSetRenderTargets(1u, simulatedColor.GetRTVAddress(), pDepthStencil->GetView());
 
-		// Bind and draw all the individual objects
-		for (auto cur = renderObjects.begin(); cur != renderObjects.end(); cur++) {
-			pDeviceContext->VSSetConstantBuffers(0u, 1u, (*cur)->GetTransform().GetBuffer(pDeviceContext.Get()).GetBufferAddress());
-			(*cur)->Draw(pDeviceContext.Get());
+		lightfield.Simulate(pDeviceContext.Get(), renderObjects);
+
+		if (false) {
+			pDeviceContext->OMSetRenderTargets(1u, simulatedColor.GetRTVAddress(), depthStencil.GetView());
+
+			// Bind and draw all the individual objects
+			for (auto cur = renderObjects.begin(); cur != renderObjects.end(); cur++) {
+				pDeviceContext->VSSetConstantBuffers(0u, 1u, (*cur)->GetTransform().GetBuffer(pDeviceContext.Get()).GetBufferAddress());
+				(*cur)->Draw(pDeviceContext.Get());
+			}
 		}
 	}
 	void DeduceDepth()
@@ -80,8 +93,15 @@ public:
 		pDeviceContext->OMSetDepthStencilState(pNoDepthDSS.Get(), 1u);
 		pDeviceContext->OMSetRenderTargets(1u, backBuffer.GetRTVAddress(), nullptr);
 
-		// add depth output as a shader resource
-		pDeviceContext->PSSetShaderResources(1u, 1u, outputDepth.GetSRVAddress());
+		// add shader resources
+		ID3D11ShaderResourceView* pSRVs[] = {
+			outputDepth.GetSRV(),
+			simulatedDepth.GetSRV()
+		};
+		pDeviceContext->PSSetShaderResources(1u, 2u, pSRVs);
+
+		// forward presentation mode via cbuffer
+		pDeviceContext->PSSetConstantBuffers(0u, 1u, presentationModeBuffer.GetBufferAddress());
 
 		DrawOversizedTriangle();
 
@@ -90,27 +110,12 @@ public:
 		else pSwapChain->Present(0u, DXGI_PRESENT_ALLOW_TEARING);
 
 		// unbind resources
-		ID3D11ShaderResourceView* pSRVsNull[2] = { nullptr, nullptr };
-		pDeviceContext->PSSetShaderResources(0u, 2u, pSRVsNull);
+		ID3D11ShaderResourceView* pSRVsNull[3] = { nullptr, nullptr, nullptr };
+		pDeviceContext->PSSetShaderResources(0u, 3u, pSRVsNull);
 	}
 
 	void Screenshot()
 	{
-		// bind shaders
-		oversizedTriangleVS.Bind(pDeviceContext.Get());
-		screenshotPS.Bind(pDeviceContext.Get());
-
-		// set screenshot render targets and depth stencil view for rendering
-		pDeviceContext->OMSetDepthStencilState(pNoDepthDSS.Get(), 1u);
-		pDeviceContext->OMSetRenderTargets(1u, simulatedDepth.GetRTVAddress(), nullptr);
-
-		// set depth stencil as shader resource to be written to a texture
-		ID3D11ShaderResourceView* pSRVs[1] = { pDepthStencil->GetDepthSRV()};
-		pDeviceContext->PSSetShaderResources(0u, 1u, pSRVs);
-		pDeviceContext->PSSetConstantBuffers(0u, 1u, pCamera->GetTransform().GetInverseBuffer(pDeviceContext.Get()).GetBufferAddress());
-
-		DrawOversizedTriangle();
-
 		// save gpu textures to disk in .jpg format
 		simulatedColor.SaveTextureToFile(pDeviceContext.Get(), L"screenshots/simulatedColor.jpg");
 		simulatedDepth.SaveTextureToFile(pDeviceContext.Get(), L"screenshots/simulatedDepth.jpg");
@@ -121,6 +126,10 @@ public:
 		pDeviceContext->PSSetShaderResources(0u, 1u, pSRVsNull);
 	}
 
+	void SetPresentationMode(PresentationMode presentationMode)
+	{
+		presentationModeBuffer.Update(pDeviceContext.Get(), presentationMode);
+	}
 	Camera& GetCamera() { return *pCamera; }
 	std::vector<std::unique_ptr<RenderObject>>& GetRenderObjects() { return renderObjects; }
 	ID3D11Device* GetDevice() { return pDevice.Get(); }
@@ -135,7 +144,7 @@ private:
 		pDeviceContext->ClearRenderTargetView(backBuffer.GetRTV(), clearColor);
 		pDeviceContext->ClearRenderTargetView(simulatedColor.GetRTV(), clearColor);
 		pDeviceContext->ClearRenderTargetView(outputDepth.GetRTV(), clearColor); // TODO: only really need to write one channel
-		pDepthStencil->ClearDepthStencil(pDeviceContext.Get());
+		depthStencil.ClearDepthStencil(pDeviceContext.Get());
 	}
 	void DrawOversizedTriangle()
 	{
@@ -267,7 +276,8 @@ private:
 	}
 	void CreateDepthStencil()
 	{
-		pDepthStencil = std::make_unique<DepthStencil>(pDevice.Get(), width, height);
+		// DEPRECATED
+		depthStencil.Init(pDevice.Get(), width, height);
 	}
 	void CreateSamplerState()
 	{
@@ -329,20 +339,23 @@ private:
 		outputDepth.CreateRTV(pDevice.Get(), rtvDesc);
 		outputDepth.CreateSRV(pDevice.Get(), srvDesc);
 	}
+	void CreateConstantBuffer()
+	{
+		presentationModeBuffer.Init(pDevice.Get());
+	}
 	void LoadShaders()
 	{
 		forwardVS.LoadShader(pDevice.Get(), L"data/shaders/ForwardVS.cso");
 		oversizedTriangleVS.LoadShader(pDevice.Get(), L"data/shaders/OversizedTriangleVS.cso");
 
 		forwardPS.LoadShader(pDevice.Get(), L"data/shaders/ForwardPS.cso");
-		screenshotPS.LoadShader(pDevice.Get(), L"data/shaders/ScreenshotPS.cso");
 		depthDeductionPS.LoadShader(pDevice.Get(), L"data/shaders/DepthDeductionPS.cso");
 		presentationPS.LoadShader(pDevice.Get(), L"data/shaders/PresentationPS.cso");
 	}
 
 public:
-		enum class PresentationMode : UINT { Default };
-		PresentationMode presentationMode;
+		enum class PresentationMode : UINT { eColor, eOutputDepth, eSimulatedDepth };
+		ConstantBuffer<PresentationMode> presentationModeBuffer;
 private:
 	bool bVSync = true;
 	UINT width, height;
@@ -353,20 +366,21 @@ private:
 	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwapChain;
 
 	// Pipeline objects
-	std::unique_ptr<DepthStencil> pDepthStencil;
+	DepthStencil depthStencil; // DEPRECATED
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> pSamplerState;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizer;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pNoDepthDSS, pDefaultDSS;
 
 	// Texture Buffers
+	Lightfield lightfield;
 	Texture2D backBuffer; // swapchain backbuffer
-	Texture2D simulatedColor;
-	Texture2D simulatedDepth;
+	Texture2D simulatedColor; // DEPRECATED
+	Texture2D simulatedDepth; // DEPRECATED
 	Texture2D outputDepth;
 
 	// Shaders
 	Shader<ID3D11VertexShader> forwardVS, oversizedTriangleVS;
-	Shader<ID3D11PixelShader> forwardPS, screenshotPS, depthDeductionPS, presentationPS;
+	Shader<ID3D11PixelShader> forwardPS, depthDeductionPS, presentationPS;
 
 	// Render objects
 	std::unique_ptr<Camera> pCamera;

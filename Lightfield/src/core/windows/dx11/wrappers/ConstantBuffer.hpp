@@ -14,29 +14,12 @@ public:
 	{
 		Init(pDevice, usage, cpuAccessFlags);
 	}
+	ConstantBuffer() {} // need to manually initialize
 	~ConstantBuffer() = default;
 	ROF_DELETE(ConstantBuffer);
 
 public:
-	inline void Update(ID3D11DeviceContext* const pDeviceContext)
-	{
-		D3D11_MAPPED_SUBRESOURCE mappedResource;
-		ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
-
-		//  Disable GPU access to the vertex buffer data.
-		pDeviceContext->Map(pBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedResource);
-		//  Update the vertex buffer here.
-		memcpy(mappedResource.pData, &bufferStruct, sizeof(BufferStruct));
-		//  Reenable GPU access to the vertex buffer data.
-		pDeviceContext->Unmap(pBuffer.Get(), 0u);
-	}
-
-	inline BufferType& GetData() { return bufferStruct.data; }
-	inline ID3D11Buffer* GetBuffer() { return pBuffer.Get(); }
-	inline ID3D11Buffer** GetBufferAddress() { return pBuffer.GetAddressOf(); }
-
-private:
-	void Init(ID3D11Device* const pDevice, D3D11_USAGE usage, UINT cpuAccessFlags)
+	void Init(ID3D11Device* const pDevice, D3D11_USAGE usage = D3D11_USAGE_DYNAMIC, UINT cpuAccessFlags = D3D11_CPU_ACCESS_WRITE)
 	{
 		D3D11_BUFFER_DESC cbDesc = {};
 		cbDesc.ByteWidth = sizeof(BufferStruct);
@@ -57,8 +40,30 @@ private:
 		if (FAILED(hr)) throw std::runtime_error("Could not create constant buffer");
 	}
 
+	inline void Update(ID3D11DeviceContext* const pDeviceContext)
+	{
+		D3D11_MAPPED_SUBRESOURCE mappedResource;
+		ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+
+		//  Disable GPU access to the vertex buffer data.
+		pDeviceContext->Map(pBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedResource);
+		//  Update the vertex buffer here.
+		memcpy(mappedResource.pData, &bufferStruct, sizeof(BufferStruct));
+		//  Reenable GPU access to the vertex buffer data.
+		pDeviceContext->Unmap(pBuffer.Get(), 0u);
+	}
+	inline void Update(ID3D11DeviceContext* const pDeviceContext, BufferType data)
+	{
+		bufferStruct.data = data;
+		Update(pDeviceContext);
+	}
+
+	inline BufferType& GetData() { return bufferStruct.data; }
+	inline ID3D11Buffer* GetBuffer() { return pBuffer.Get(); }
+	inline ID3D11Buffer** GetBufferAddress() { return pBuffer.GetAddressOf(); }
+
 private:
-	struct BufferStruct { BufferType data; } bufferStruct;
+	struct alignas(16) BufferStruct { BufferType data; } bufferStruct; // 16-byte aligned
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pBuffer;
 };
 typedef ConstantBuffer<DirectX::XMMATRIX> ConstantBufferMat;
