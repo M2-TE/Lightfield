@@ -100,7 +100,6 @@
     <FxCompile Include="src\shaders\OversizedTriangleVS.hlsl" />
     <FxCompile Include="src\shaders\ForwardVS.hlsl" />
     <FxCompile Include="src\shaders\ForwardPS.hlsl" />
-    <FxCompile Include="src\shaders\ScreenshotPS.hlsl" />
     <FxCompile Include="src\shaders\DepthDeductionPS.hlsl" />
     <FxCompile Include="src\shaders\PresentationPS.hlsl" />
   </ItemGroup>

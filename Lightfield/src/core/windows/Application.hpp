@@ -142,14 +142,15 @@ private:
 		HandleInput();
 
 		pRenderer->SimulateScene();
-		//pRenderer->DeduceDepth();
-		//pRenderer->Present();
+		pRenderer->DeduceDepth();
+		pRenderer->Present();
 	}
 	void HandleInput()
 	{
 		if (input.IsKeyPressed(VK_F1)) pRenderer->SetPresentationMode(Renderer::PresentationMode::eColor);
-		else if (input.IsKeyPressed(VK_F2)) pRenderer->SetPresentationMode(Renderer::PresentationMode::eOutputDepth);
-		else if (input.IsKeyPressed(VK_F3)) pRenderer->SetPresentationMode(Renderer::PresentationMode::eSimulatedDepth);
+		else if (input.IsKeyPressed(VK_F2)) pRenderer->SetPresentationMode(Renderer::PresentationMode::eSimulatedDepth);
+		else if (input.IsKeyPressed(VK_F3)) pRenderer->SetPresentationMode(Renderer::PresentationMode::eOutputDepth);
+		else if (input.IsKeyPressed(VK_F4)) pRenderer->CyclePreviewCam();
 		if (input.IsKeyPressed(VK_F9)) pRenderer->Screenshot();
 		HandleCameraMovement();
 
