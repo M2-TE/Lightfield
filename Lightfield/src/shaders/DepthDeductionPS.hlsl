@@ -9,9 +9,9 @@ static const float3 d = float3(-c, 0.0f, c); // is the -c really correct in the 
 
 // convert rgb to luma, as perceived by our eyes
 // need to convert from sRGB (gamma) to rgb (linear) or use sRGB texture buffers (ofc only when the incoming image is in sRGB color format)
-#define LUMA_DIGITAL_ITU_BT709(rgb) 0.2126f * rgb.r + 0.7152f * rgb.g + 0.0722f * rgb.b
-#define LUMA_DIGITAL_ITU_BT601(rgb) 0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b
-#define LUMA_DIGITAL_ITU_BT601_PRECISE(rgb) sqrt(0.299 * rgb.r * rgb.r + 0.587 * rgb.g * rgb.g + 0.114 * rgb.b * rgb.b)
+#define LUMA_DIGITAL_ITU_BT709(col) 0.2126f * col.x + 0.7152f * col.y + 0.0722f * col.z
+#define LUMA_DIGITAL_ITU_BT601(col) 0.299 * col.x + 0.587 * col.y + 0.114 * col.z
+#define LUMA_DIGITAL_ITU_BT601_PRECISE(col) sqrt(0.299 * col.x * col.x + 0.587 * col.y * col.y + 0.114 * col.z * col.z)
 // simple greyscale by averaging channels
 #define LUMINANCE(col) col.rgb * 0.333333f
 
@@ -35,7 +35,7 @@ float main(float4 screenPos : SV_Position) : SV_Target
             const int il = int(l + 1);
             const int ij = int(j + 1);
             const int2 lj = int2(l, j);
-
+            
             const float4 colorA = colorBufferA[texPos + lj];
             const float4 colorB = colorBufferB[texPos + lj];
             const float lumaA = BRIGHTNESS(colorA);
