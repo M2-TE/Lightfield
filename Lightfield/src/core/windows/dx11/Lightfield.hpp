@@ -46,8 +46,11 @@ public:
 	void Screenshot(ID3D11DeviceContext* const pDeviceContext)
 	{
 		// save gpu textures to disk in .jpg format
-		simulatedColors[iPreviewCam].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedColor.jpg");
-		simulatedDepths[iPreviewCam].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedDepth.jpg");
+		simulatedColors[0].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedColor0.jpg");
+		simulatedDepths[0].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedDepth0.jpg");
+
+		simulatedColors[1].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedColor1.jpg");
+		simulatedDepths[1].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedDepth1.jpg");
 	}
 
 	void CyclePreviewCamera()
@@ -144,8 +147,9 @@ private:
 	void InitOffsets(ID3D11Device* const pDevice)
 	{
 		// setting offsets manually for now
-		offsetBuffers[0].GetData() = DirectX::XMFLOAT3A(-0.1f, 0.0f, 0.0f); // left eye
-		offsetBuffers[1].GetData() = DirectX::XMFLOAT3A(+0.1f, 0.0f, 0.0f); // right eye
+		float offset = 0.001f;
+		offsetBuffers[0].GetData() = DirectX::XMFLOAT3A(-offset, 0.0f, 0.0f); // left eye
+		offsetBuffers[1].GetData() = DirectX::XMFLOAT3A(+offset, 0.0f, 0.0f); // right eye
 
 		for (UINT i = 0u; i < nCams; i++) {
 			offsetBuffers[i].Init(pDevice); // buffers can be edited at runtime (increase distance between eyes?)
@@ -159,6 +163,6 @@ private:
 	// TODO: could wrap these in a struct, would make pointer iteration quite readable
 	std::array<Texture2D, nCams> simulatedColors; // r8g8b8a8 -> 4 channels, each 8 bit (alpha shouldnt be needed, keeping for simplicity)
 	std::array<Texture2D, nCams> simulatedDepths; // single channel 16b float
-	std::array<DepthStencil, nCams> depthStencils;
+	std::array<DepthStencil, nCams> depthStencils; // only really need one in reality?
 	std::array<ConstantBuffer<DirectX::XMFLOAT3A>, nCams> offsetBuffers;
 };

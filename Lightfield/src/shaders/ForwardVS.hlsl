@@ -30,7 +30,7 @@ Output main(Input input)
 
     // VIEW POS
     output.viewPos = mul(output.worldPos, ViewMatrix);
-    output.viewPos.xyz += camOffset.xyz; // apply camera offset
+    output.viewPos.xyz -= camOffset.xyz; // apply camera offset
 
     // SV POS
     output.screenPos = mul(output.viewPos, ProjectionMatrix);
