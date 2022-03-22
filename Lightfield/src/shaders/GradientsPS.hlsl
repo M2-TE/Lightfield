@@ -34,7 +34,7 @@ float4 main(float4 screenPos : SV_Position) : SV_Target
 
                     float3 p = float3(0.229879f, 0.540242f, 0.229879f);
                     // flipping to always point to center camera
-                    float3 d = u < 0u ? float3(-0.425287f, 0.0f, 0.425287f) : float3(0.425287f, 0.0f, -0.425287f);
+                    float3 d = u < 1u ? float3(-0.425287f, 0.0f, 0.425287f) : float3(0.425287f, 0.0f, -0.425287f);
 
                     // calculate (approximate) derivatives
                     uint2 i = uint2(x + s, y + s);

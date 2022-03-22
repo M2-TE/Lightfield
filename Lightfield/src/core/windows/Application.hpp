@@ -95,12 +95,12 @@ private:
 		pRenderer->GetCamera().GetTransform().Translate(0.0f, 0.0f, -10.0f);
 
 		// create some objects to view
-		{
-			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, Primitive::Cube));
-			auto& transform = renderObjects.back()->GetTransform();
-			transform.Translate(0.0f, 0.0f, 0.0f);
-			transform.SetScale(0.3f, 0.3f, 0.3f);
-		}
+		//{
+		//	renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, Primitive::Cube));
+		//	auto& transform = renderObjects.back()->GetTransform();
+		//	transform.Translate(0.0f, 0.0f, 0.0f);
+		//	transform.SetScale(0.3f, 0.3f, 0.3f);
+		//}
 		{
 			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, Primitive::Quad));
 			auto& transform = renderObjects.back()->GetTransform();

@@ -16,7 +16,6 @@ float main(float4 screenPos : SV_Position) : SV_Target
 
 			a += gradients.x * gradients.z + gradients.y * gradients.w;
 			b += gradients.x * gradients.x + gradients.y * gradients.y;
-
 		}
 	}
 
