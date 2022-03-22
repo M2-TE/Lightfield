@@ -17,24 +17,18 @@ public:
 	{
 		static constexpr float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		for (UINT i = 0u; i < nCams; i++) {
-			pDeviceContext->ClearRenderTargetView(simulatedColors[i].GetRTV(), clearColor);
-			pDeviceContext->ClearRenderTargetView(simulatedDepths[i].GetRTV(), clearColor); // TODO: only really need to write one channel since its R16
-			
-			depthStencils[i].ClearDepthStencil(pDeviceContext);
+			pDeviceContext->ClearRenderTargetView(rtvArr[i].Get(), clearColor);
+			depthStencilArr[i].ClearDepthStencil(pDeviceContext);
 		}
 		
 	}
 	void Simulate(ID3D11DeviceContext* const pDeviceContext, std::vector<std::unique_ptr<RenderObject>>& renderObjects)
 	{
 		for (UINT i = 0u; i < nCams; i++) {
-			ID3D11RenderTargetView* pRTVs[] = {
-				simulatedColors[i].GetRTV(),
-				simulatedDepths[i].GetRTV()
-			};
-			pDeviceContext->OMSetRenderTargets(2u, pRTVs, depthStencils[i].GetView());
+			pDeviceContext->OMSetRenderTargets(1u, rtvArr[i].GetAddressOf(), depthStencilArr[i].GetView());
 
 			// Bind offset
-			pDeviceContext->VSSetConstantBuffers(3u, 1u, offsetBuffers[i].GetBufferAddress());
+			pDeviceContext->VSSetConstantBuffers(3u, 1u, offsetBufferArr[i].GetBufferAddress());
 
 			// Bind and draw all the individual objects
 			for (auto cur = renderObjects.begin(); cur != renderObjects.end(); cur++) {
@@ -43,14 +37,16 @@ public:
 			}
 		}
 	}
+	// TODO: screenshot functionality outside of Texture2D wrapper
 	void Screenshot(ID3D11DeviceContext* const pDeviceContext)
 	{
+		throw new std::exception("TODO: screenshots");
 		// save gpu textures to disk in .jpg format
-		simulatedColors[0].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedColor0.jpg");
-		simulatedDepths[0].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedDepth0.jpg");
+		//simulatedColors[0].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedColor0.jpg");
+		//simulatedDepths[0].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedDepth0.jpg");
 
-		simulatedColors[1].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedColor1.jpg");
-		simulatedDepths[1].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedDepth1.jpg");
+		//simulatedColors[1].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedColor1.jpg");
+		//simulatedDepths[1].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedDepth1.jpg");
 	}
 
 	void CyclePreviewCamera()
@@ -59,39 +55,28 @@ public:
 	}
 	void BindColorTextures(ID3D11DeviceContext* const pDeviceContext)
 	{
-		ID3D11ShaderResourceView* pSRVs[nCams] = {
-			simulatedColors[0].GetSRV(),
-			simulatedColors[1].GetSRV()
-		};
-
-		pDeviceContext->PSSetShaderResources(0u, nCams, pSRVs);
+		pDeviceContext->PSSetShaderResources(0u, 1u, pSrvArr.GetAddressOf());
 	}
 	void UnbindColorTextures(ID3D11DeviceContext* const pDeviceContext)
 	{
-		ID3D11ShaderResourceView* pSRVs[nCams] = {
-			nullptr, 
-			nullptr
-		};
-
-		pDeviceContext->PSSetShaderResources(0u, nCams, pSRVs);
+		ID3D11ShaderResourceView* pSRVs[] = { nullptr };
+		pDeviceContext->PSSetShaderResources(0u, 1u, pSRVs);
 	}
+
+	// TODO: create single SRV for each tex for preview! (or cbuffer?)
 	void BindPreviewTextures(ID3D11DeviceContext* const pDeviceContext)
 	{
-		ID3D11ShaderResourceView* const pSRVs[] = {
-			simulatedColors[iPreviewCam].GetSRV(),
-			simulatedDepths[iPreviewCam].GetSRV()
-		};
-		pDeviceContext->PSSetShaderResources(0u, 2u, pSRVs);
+		pDeviceContext->PSSetShaderResources(0u, 1u, pSrvArr.GetAddressOf());
 	}
 	void UnbindPreviewTextures(ID3D11DeviceContext* const pDeviceContext)
 	{
-		ID3D11ShaderResourceView* const pSRVs[] = {
-			nullptr,
-			nullptr
-		};
-		pDeviceContext->PSSetShaderResources(0u, 2u, pSRVs);
+		ID3D11ShaderResourceView* const pSRVs[] = { nullptr };
+		pDeviceContext->PSSetShaderResources(0u, 1u, pSRVs);
 	}
+
+
 private:
+	// All part of the Init() func
 	void InitTextures(ID3D11Device* const pDevice, UINT width, UINT height)
 	{
 		D3D11_TEXTURE2D_DESC texDesc = {};
@@ -99,74 +84,60 @@ private:
 		texDesc.Width = width;
 		texDesc.Height = height;
 		texDesc.MipLevels = 1u;
-		texDesc.ArraySize = 1u;
+		texDesc.ArraySize = nCams;
 		texDesc.Usage = D3D11_USAGE_DEFAULT;
 		texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 		texDesc.CPUAccessFlags = 0u;
 		texDesc.SampleDesc.Count = 1u;
 		texDesc.SampleDesc.Quality = 0u;
-
-		D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
-		rtvDesc.Format = texDesc.Format;
-		rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		pDevice->CreateTexture2D(&texDesc, nullptr, pTexArr.GetAddressOf());
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.Format = texDesc.Format;
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MipLevels = 1u;
-		srvDesc.Texture2D.MostDetailedMip = 0u;
+		srvDesc.Texture2DArray.FirstArraySlice = 0u;
+		srvDesc.Texture2DArray.MostDetailedMip = 0u;
+		srvDesc.Texture2DArray.MipLevels = 1u;
+		srvDesc.Texture2DArray.ArraySize = nCams;
+		pDevice->CreateShaderResourceView(pTexArr.Get(), &srvDesc, pSrvArr.GetAddressOf());
 
-		// color maps
-		for (UINT i = 0u; i < nCams; i++) {
-			simulatedColors[i].CreateTexture(pDevice, texDesc);
-			simulatedColors[i].CreateRTV(pDevice, rtvDesc);
-			simulatedColors[i].CreateSRV(pDevice, srvDesc);
-		}
-
-		// depth maps
-		texDesc.Format = DXGI_FORMAT_R16_FLOAT;
+		// creating multiple RTV (one for each array slice)
+		D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
 		rtvDesc.Format = texDesc.Format;
-		srvDesc.Format = texDesc.Format;
+		rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+		rtvDesc.Texture2DArray.MipSlice = 0u;
+		rtvDesc.Texture2DArray.ArraySize = 1u;
 		for (UINT i = 0u; i < nCams; i++) {
-			simulatedDepths[i].CreateTexture(pDevice, texDesc);
-			simulatedDepths[i].CreateRTV(pDevice, rtvDesc);
-			simulatedDepths[i].CreateSRV(pDevice, srvDesc);
+			rtvDesc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0u, i, 1u);
+			pDevice->CreateRenderTargetView(pTexArr.Get(), &rtvDesc, rtvArr[i].GetAddressOf());
 		}
-
-		// output depth map should be similar to the simulated ones
-		//outputDepth.CreateTexture(pDevice, texDesc);
-		//outputDepth.CreateRTV(pDevice, rtvDesc);
-		//outputDepth.CreateSRV(pDevice, srvDesc);
 	}
 	void InitDepthStencils(ID3D11Device* const pDevice, UINT width, UINT height)
 	{
 		for (UINT i = 0u; i < nCams; i++) {
-			depthStencils[i].Init(pDevice, width, height);
+			depthStencilArr[i].Init(pDevice, width, height);
 		}
 	}
 	void InitOffsets(ID3D11Device* const pDevice)
 	{
-		// setting offsets manually for now
-		float offset = 0.01f;
-		offsetBuffers[0].GetData() = DirectX::XMFLOAT3A(-offset, 0.0f, 0.0f); // left eye
-		offsetBuffers[1].GetData() = DirectX::XMFLOAT3A(+offset, 0.0f, 0.0f); // right eye
-
-		for (UINT i = 0u; i < nCams; i++) {
-			offsetBuffers[i].Init(pDevice); // buffers can be edited at runtime (increase distance between eyes?)
+		UINT bufferIndex = 0u;
+		for (int x = -camLoopLim; x <= camLoopLim; x++) {
+			for (int y = -camLoopLim; y <= camLoopLim; y++) {
+				offsetBufferArr[bufferIndex].GetData() = DirectX::XMFLOAT3A(offset * static_cast<float>(x), offset * static_cast<float>(y), 0.0f);
+				offsetBufferArr[bufferIndex++].Init(pDevice);
+			}
 		}
 	}
 
 private:
-	static constexpr UINT nCams = 2u;
+	static constexpr float offset = 0.1f; // distance to center camera
+	static constexpr int camLoopLim = 1;
+	static constexpr UINT nCams = 9u;
 	UINT iPreviewCam = 0u;
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pTexArr;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pSrvArr;
-	std::array<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>, nCams> rtvArr;
-
-	// TODO: could wrap these in a struct, would make pointer iteration quite readable
-	std::array<Texture2D, nCams> simulatedColors; // r8g8b8a8 -> 4 channels, each 8 bit (alpha shouldnt be needed, keeping for simplicity)
-	std::array<Texture2D, nCams> simulatedDepths; // single channel 16b float
-	std::array<DepthStencil, nCams> depthStencils; // only really need one in reality?
-	std::array<ConstantBuffer<DirectX::XMFLOAT3A>, nCams> offsetBuffers;
+	std::array<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>, nCams> rtvArr; // simultaneous render target limit of 4, so each needs to be rendered to separately
+	std::array<ConstantBuffer<DirectX::XMFLOAT3A>, nCams> offsetBufferArr;
+	std::array<DepthStencil, nCams> depthStencilArr; // only really need one in reality?
 };

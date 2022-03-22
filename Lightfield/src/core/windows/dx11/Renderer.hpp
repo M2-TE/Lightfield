@@ -321,7 +321,7 @@ private:
 
 		// output depth texture should just be single channel 16bit float
 		
-		texDesc.Format = DXGI_FORMAT_R16_UNORM;
+		texDesc.Format = DXGI_FORMAT_R16_FLOAT;
 		rtvDesc.Format = texDesc.Format;
 		srvDesc.Format = texDesc.Format;
 		outputDepth.CreateTexture(pDevice.Get(), texDesc);

@@ -108,33 +108,33 @@ private:
 			transform.RotateEuler(static_cast<float>(M_PI_2), 0.0f, 0.0f);
 			transform.SetScale(10.0f, 10.0f, 1.0f);
 		}
-		{
-			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, "Bevel_Floor"));
-			auto& transform = renderObjects.back()->GetTransform();
-			transform.Translate(0.0f, -3.49f, 0.0f);
-			transform.SetScale(5.0f, 1.0f, 5.0f);
-		}
-		{
-			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, "PLANTS_ON_TABLE_10k"));
-			auto& transform = renderObjects.back()->GetTransform();
-			transform.Translate(3.8f, -3.5f, -1.5f);
-			transform.RotateEuler(0.0f, static_cast<float>(M_PI_2) - 0.25f, 0.0f);
-			transform.SetScale(1.0f, 1.0f, 1.0f);
-		}
-		{
-			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, "Medieval_boxes"));
-			auto& transform = renderObjects.back()->GetTransform();
-			transform.Translate(-4.0f, -3.49f, -4.0f);
-			transform.RotateEuler(0.0f, static_cast<float>(M_PI_2) * 0.5f, 0.0f);
-			transform.SetScale(2.0f, 2.0f, 2.0f);
-		}
-		{
-			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, "Patio_Set"));
-			auto& transform = renderObjects.back()->GetTransform();
-			transform.Translate(3.0f, -3.49f, -3.5f);
-			transform.RotateEuler(0.0f, static_cast<float>(M_PI_2) + 0.1f, 0.0f);
-			transform.SetScale(0.01f, 0.01f, 0.01f);
-		}
+		//{
+		//	renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, "Bevel_Floor"));
+		//	auto& transform = renderObjects.back()->GetTransform();
+		//	transform.Translate(0.0f, -3.49f, 0.0f);
+		//	transform.SetScale(5.0f, 1.0f, 5.0f);
+		//}
+		//{
+		//	renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, "PLANTS_ON_TABLE_10k"));
+		//	auto& transform = renderObjects.back()->GetTransform();
+		//	transform.Translate(3.8f, -3.5f, -1.5f);
+		//	transform.RotateEuler(0.0f, static_cast<float>(M_PI_2) - 0.25f, 0.0f);
+		//	transform.SetScale(1.0f, 1.0f, 1.0f);
+		//}
+		//{
+		//	renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, "Medieval_boxes"));
+		//	auto& transform = renderObjects.back()->GetTransform();
+		//	transform.Translate(-4.0f, -3.49f, -4.0f);
+		//	transform.RotateEuler(0.0f, static_cast<float>(M_PI_2) * 0.5f, 0.0f);
+		//	transform.SetScale(2.0f, 2.0f, 2.0f);
+		//}
+		//{
+		//	renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, "Patio_Set"));
+		//	auto& transform = renderObjects.back()->GetTransform();
+		//	transform.Translate(3.0f, -3.49f, -3.5f);
+		//	transform.RotateEuler(0.0f, static_cast<float>(M_PI_2) + 0.1f, 0.0f);
+		//	transform.SetScale(0.01f, 0.01f, 0.01f);
+		//}
 	}
 	void Update()
 	{
