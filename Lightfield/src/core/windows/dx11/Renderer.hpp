@@ -61,16 +61,22 @@ public:
 	void DeduceDepth()
 	{
 		oversizedTriangleVS.Bind(pDeviceContext.Get());
-		depthDeductionPS.Bind(pDeviceContext.Get());
+		gradientsPS.Bind(pDeviceContext.Get());
 
-		// attach the non-depth DSS and set depthOutput as render target
+		// attach the non-depth DSS and set gradients as render target
 		pDeviceContext->OMSetDepthStencilState(pNoDepthDSS.Get(), 1u);
-		pDeviceContext->OMSetRenderTargets(1u, outputDepth.GetRTVAddress(), nullptr);
+		pDeviceContext->OMSetRenderTargets(1u, gradients.GetRTVAddress(), nullptr);
 
 		// read color buffers as input
 		lightfield.BindColorTextures(pDeviceContext.Get());
 		DrawOversizedTriangle();
 		lightfield.UnbindColorTextures(pDeviceContext.Get());
+
+		// finally, deduce depth from gradients
+		depthDeductionPS.Bind(pDeviceContext.Get());
+		pDeviceContext->OMSetRenderTargets(1u, outputDepth.GetRTVAddress(), nullptr);
+		pDeviceContext->PSSetShaderResources(0u, 1u, gradients.GetSRVAddress());
+		DrawOversizedTriangle();
 	}
 	void Present()
 	{
@@ -304,13 +310,20 @@ private:
 		srvDesc.Texture2D.MipLevels = 1u;
 		srvDesc.Texture2D.MostDetailedMip = 0u;
 
-		// TODO
+		// each channel should contain a lightfield derivative, 4 in total per pixel
+		texDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+		texDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		rtvDesc.Format = texDesc.Format;
+		srvDesc.Format = texDesc.Format;
+		gradients.CreateTexture(pDevice.Get(), texDesc);
+		gradients.CreateRTV(pDevice.Get(), rtvDesc);
+		gradients.CreateSRV(pDevice.Get(), srvDesc);
 
 		// output depth texture should just be single channel 16bit float
-		texDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+		
 		texDesc.Format = DXGI_FORMAT_R16_UNORM;
 		rtvDesc.Format = texDesc.Format;
-		srvDesc.Format = texDesc.Format; 
+		srvDesc.Format = texDesc.Format;
 		outputDepth.CreateTexture(pDevice.Get(), texDesc);
 		outputDepth.CreateRTV(pDevice.Get(), rtvDesc);
 		outputDepth.CreateSRV(pDevice.Get(), srvDesc);
@@ -325,6 +338,7 @@ private:
 		oversizedTriangleVS.LoadShader(pDevice.Get(), L"data/shaders/OversizedTriangleVS.cso");
 
 		forwardPS.LoadShader(pDevice.Get(), L"data/shaders/ForwardPS.cso");
+		gradientsPS.LoadShader(pDevice.Get(), L"data/shaders/GradientsPS.cso");
 		depthDeductionPS.LoadShader(pDevice.Get(), L"data/shaders/DepthDeductionPS.cso");
 		presentationPS.LoadShader(pDevice.Get(), L"data/shaders/PresentationPS.cso");
 	}
@@ -349,11 +363,12 @@ private:
 	// Texture Buffers
 	Lightfield lightfield;
 	Texture2D backBuffer; // swapchain backbuffer
+	Texture2D gradients; // intermediary output for
 	Texture2D outputDepth; // this is what its all for
 
 	// Shaders
 	Shader<ID3D11VertexShader> forwardVS, oversizedTriangleVS;
-	Shader<ID3D11PixelShader> forwardPS, depthDeductionPS, presentationPS;
+	Shader<ID3D11PixelShader> forwardPS, gradientsPS, depthDeductionPS, presentationPS;
 
 	// Render objects
 	std::unique_ptr<Camera> pCamera;

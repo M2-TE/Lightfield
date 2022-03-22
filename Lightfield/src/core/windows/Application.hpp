@@ -357,7 +357,7 @@ private:
 
 private:
 	static constexpr LPCWSTR wndTitle = L"Lightfield";
-	static constexpr int height = 512, width = 512;
+	static constexpr int height = 720, width = 1280;
 	const HINSTANCE hInstance;
 	HWND hWnd;
 

@@ -147,7 +147,7 @@ private:
 	void InitOffsets(ID3D11Device* const pDevice)
 	{
 		// setting offsets manually for now
-		float offset = 0.001f;
+		float offset = 0.01f;
 		offsetBuffers[0].GetData() = DirectX::XMFLOAT3A(-offset, 0.0f, 0.0f); // left eye
 		offsetBuffers[1].GetData() = DirectX::XMFLOAT3A(+offset, 0.0f, 0.0f); // right eye
 
@@ -159,6 +159,10 @@ private:
 private:
 	static constexpr UINT nCams = 2u;
 	UINT iPreviewCam = 0u;
+
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> pTexArr;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pSrvArr;
+	std::array<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>, nCams> rtvArr;
 
 	// TODO: could wrap these in a struct, would make pointer iteration quite readable
 	std::array<Texture2D, nCams> simulatedColors; // r8g8b8a8 -> 4 channels, each 8 bit (alpha shouldnt be needed, keeping for simplicity)
