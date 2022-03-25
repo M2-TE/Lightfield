@@ -1,5 +1,7 @@
 #pragma once
 
+//#include <cmath>
+
 // container to hold all potential textures for objects
 struct TexturePack {
 	std::unique_ptr<Texture2D> alpha_tex;
@@ -15,9 +17,9 @@ struct TexturePack {
 // Vertex type used for standard meshes
 struct Vertex 
 { 
-	DirectX::XMFLOAT4 pos; 
-	DirectX::XMFLOAT4 norm; 
-	DirectX::XMFLOAT4 col; 
+	DirectX::XMFLOAT4 pos;
+	DirectX::XMFLOAT4 norm;
+	DirectX::XMFLOAT4 col;
 	DirectX::XMFLOAT4 uvCoords;
 };
 // Default index type
@@ -113,7 +115,47 @@ struct Submesh
 	}
 	void SetAsSphere(ID3D11Device* const pDevice)
 	{
-		// TODO
+		DirectX::XMFLOAT4 col = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+		static constexpr float M = 50.0f;
+		static constexpr float N = 50.0f;
+		static constexpr float pi = M_PI;
+
+		for (float m = 0; m <= M; m++) {
+			for (float n = 0; n <= N; n++) {
+				float x = sinf(pi * m / M) * cosf(2 * pi * n / N);
+				float y = sinf(pi * m / M) * sinf(2 * pi * n / N);
+				float z = cosf(pi * m / M);
+
+				Vertex vert = {};
+				vert.pos = DirectX::XMFLOAT4(x, y, z, 1.0f);
+				vert.col = col;
+				vert.norm = DirectX::XMFLOAT4(x, y, z, 0.0f);
+
+				vertices.push_back(vert);
+			}
+		}
+
+		UINT nLati = static_cast<UINT>(M);
+		UINT nLongi = static_cast<UINT>(N);
+		UINT nLatiP = nLati + 1u;
+		for (UINT lati = 0u; lati <= nLati; ++lati) {
+			for (UINT longi = 0u; longi < nLongi; ++longi) {
+
+				UINT latiIndex = lati * nLatiP;
+				UINT latiIndexP = (lati + 1) * nLatiP;
+				UINT longIndex = longi;
+				UINT longIndexP = longi + 1;
+
+				indices.push_back(latiIndex + longIndex);
+				indices.push_back(latiIndex + longIndexP);
+				indices.push_back(latiIndexP + longIndex);
+
+				indices.push_back(latiIndex + longIndexP);
+				indices.push_back(latiIndexP + longIndexP);
+				indices.push_back(latiIndexP + longIndex);
+			}
+		}
 	}
 	void SetAsQuad(ID3D11Device* const pDevice)
 	{

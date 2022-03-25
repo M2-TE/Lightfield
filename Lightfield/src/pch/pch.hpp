@@ -33,10 +33,10 @@
 
 	// DirectX 11 Debugging
 	#ifdef _DEBUG
-	#pragma comment(lib, "dxgi.lib")
-	#pragma comment(lib, "dxguid.lib")
-	#include <dxgidebug.h>
-	#include <dxgi1_3.h>
+		#pragma comment(lib, "dxgi.lib")
+		#pragma comment(lib, "dxguid.lib")
+		#include <dxgidebug.h>
+		#include <dxgi1_3.h>
 	#endif
 	
 	// Shader Compiler
