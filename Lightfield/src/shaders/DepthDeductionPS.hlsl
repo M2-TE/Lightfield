@@ -20,5 +20,5 @@ float main(float4 screenPos : SV_Position) : SV_Target
 	}
 
 	// s = Ep(Lx * Lu + Ly * Lv) / Ep(Lx * Lx + Ly * Ly)
-	return (a / b) * 1.0f;
+	return (a / b);
 }

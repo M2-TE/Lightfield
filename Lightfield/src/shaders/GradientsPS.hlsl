@@ -1,13 +1,10 @@
 #define BRIGHTNESS(col) dot(col, float3(0.333333f, 0.333333f, 0.333333f)); // using standard greyscale for now, human perception might be fun to look into later
 
-Texture2D colorBufferA : register(t0); // left eye
-Texture2D colorBufferB : register(t1); // right eye
-
 Texture2DArray colBuffArr : register(t0);
 
 float4 main(float4 screenPos : SV_Position) : SV_Target
 {
-    const int3 texPos = uint3(screenPos.xy, 0);
+    const int3 texPos = int3(screenPos.xy, 0);
 
     // lightfield derivatives
     float Lx = 0.0f;
@@ -16,32 +13,36 @@ float4 main(float4 screenPos : SV_Position) : SV_Target
     float Lv = 0.0f;
 
     // calc derivatives using color inputs
-    const int s = 1; // 3x3, -1 -> 1, x and y
-    const uint k = 2; // 3x3, 0 -> 2, u and v
+    const int k = 2; // 3x3, 0 -> 2
+    const int kH = 1; // k / 2
+
+    const float3 p = float3(0.229879f, 0.540242f, 0.229879f);
+    const float3 dA = float3(-0.425287f, 0.0f, 0.425287f);
+    const float3 dB = float3(0.425287f, 0.0f, -0.425287f);
 
     // iterate over 2D patch of pixels
-    for (int x = -s; x <= s; x++) {
-        for (int y = -s; y <= s; y++) {
+    for (int x = 0; x <= k; x++) {
+        for (int y = 0; y <= k; y++) {
+            for (int u = 0; u <= k; u++) {
+                for (int v = 0; v <= k; v++) {
 
-            // iterate over "2D" patch of cameras
-            int camIndex = 0; // keep track of 1D index into camera array
-            for (uint u = 0u; u <= k; u++) {
-                for (uint v = 0u; v <= k; v++) {
-                    const int3 texOffset = int3(x, y, camIndex++);
+                    int camIndex = u * k + v;
+                    int3 texOffset = int3(x - kH, y - kH, 0);
 
-                    const float3 color = colBuffArr[uint3(texPos - texOffset)].rgb;
-                    const float luma = BRIGHTNESS(color);
+                    float3 color = colBuffArr[uint3(texPos + texOffset + int3(0, 0, camIndex))].rgb;
+                    float luma = BRIGHTNESS(color);
 
-                    float3 p = float3(0.229879f, 0.540242f, 0.229879f);
-                    // flipping to always point to center camera
-                    float3 d = u < 1u ? float3(-0.425287f, 0.0f, 0.425287f) : float3(0.425287f, 0.0f, -0.425287f);
+                    // approximate derivatives using 3-tap filter
+                    float3 d;
+                    d = u < 1 ? dA : dB;
+                    Lx += d[x] * p[y] * p[u] * p[v] * luma;
+                    d = x < 1 ? dA : dB;
+                    Lu += p[x] * p[y] * d[u] * p[v] * luma * 0.1f;
 
-                    // calculate (approximate) derivatives
-                    uint2 i = uint2(x + s, y + s);
-                    Lx += d[i.x] * p[i.y] * p[u] * p[v] * luma;
-                    Ly += p[i.x] * d[i.y] * p[u] * p[v] * luma;
-                    Lu += p[i.x] * p[i.y] * d[u] * p[v] * luma;
-                    Lv += p[i.x] * p[i.y] * p[u] * d[v] * luma;
+                    d = v < 1 ? dA : dB;
+                    Ly += p[x] * d[y] * p[u] * p[v] * luma;
+                    d = y < 1 ? dA : dB;
+                    Lv += p[x] * p[y] * p[u] * d[v] * luma * 0.1f;
                 }
             }
         }

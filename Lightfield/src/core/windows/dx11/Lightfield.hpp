@@ -49,9 +49,11 @@ public:
 		//simulatedDepths[1].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedDepth1.jpg");
 	}
 
-	void CyclePreviewCamera()
+	void CyclePreviewCamera(ID3D11DeviceContext* const pDeviceContext)
 	{
-		iPreviewCam = (iPreviewCam + 1) % nCams;
+		UINT iCur = previewCamBuffer.GetData();
+		previewCamBuffer.GetData() = (iCur + 1) % nCams;
+		previewCamBuffer.Update(pDeviceContext, (iCur + 1) % nCams);
 	}
 	void BindColorTextures(ID3D11DeviceContext* const pDeviceContext)
 	{
@@ -63,10 +65,10 @@ public:
 		pDeviceContext->PSSetShaderResources(0u, 1u, pSRVs);
 	}
 
-	// TODO: create single SRV for each tex for preview! (or cbuffer?)
 	void BindPreviewTextures(ID3D11DeviceContext* const pDeviceContext)
 	{
 		pDeviceContext->PSSetShaderResources(0u, 1u, pSrvArr.GetAddressOf());
+		pDeviceContext->PSSetConstantBuffers(1u, 1u, previewCamBuffer.GetBufferAddress());
 	}
 	void UnbindPreviewTextures(ID3D11DeviceContext* const pDeviceContext)
 	{
@@ -94,7 +96,7 @@ private:
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.Format = texDesc.Format;
-		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 		srvDesc.Texture2DArray.FirstArraySlice = 0u;
 		srvDesc.Texture2DArray.MostDetailedMip = 0u;
 		srvDesc.Texture2DArray.MipLevels = 1u;
@@ -127,13 +129,16 @@ private:
 				offsetBufferArr[bufferIndex++].Init(pDevice);
 			}
 		}
+
+		previewCamBuffer.GetData() = 0u;
+		previewCamBuffer.Init(pDevice);
 	}
 
 private:
-	static constexpr float offset = 0.1f; // distance to center camera
+	static constexpr float offset = 5.1f; // distance to center camera
 	static constexpr int camLoopLim = 1;
 	static constexpr UINT nCams = 9u;
-	UINT iPreviewCam = 0u;
+	ConstantBuffer<UINT> previewCamBuffer;
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pTexArr;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pSrvArr;

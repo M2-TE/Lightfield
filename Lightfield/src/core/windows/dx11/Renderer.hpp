@@ -115,7 +115,7 @@ public:
 	}
 	void CyclePreviewCam()
 	{
-		lightfield.CyclePreviewCamera();
+		lightfield.CyclePreviewCamera(pDeviceContext.Get());
 	}
 
 	void SetPresentationMode(PresentationMode presentationMode)
