@@ -31,8 +31,8 @@ Output main(Input input)
     [unroll]
     for (uint i = 0u; i < NUM_LIGHTS; i++)
     {
-        //float3 lightDir = lightPosArr[0] - input.worldPos.xyz;
-        float3 lightDir = float3(0.0f, 0.0f, -1.0f); // DEBUG: SIMULATED SUN FOR CONSTANT LIGHT DIR
+        float3 lightDir = lightPosArr[0] - input.worldPos.xyz;
+        //float3 lightDir = float3(0.0f, 0.0f, -1.0f); // DEBUG: SIMULATED SUN FOR CONSTANT LIGHT DIR
         float dist = length(lightDir);
         float atten = 1.0f / pow(dist, 0.3f);
         lightIntensity += max(dot(input.normal.xyz, normalize(lightDir)), 0.1f) * atten;

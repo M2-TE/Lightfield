@@ -138,7 +138,7 @@ private:
 	}
 
 private:
-	static constexpr float offset = 0.01f; // distance to center camera
+	static constexpr float offset = .01f; // distance to center camera
 	static constexpr int camLoopLim = 1;
 	static constexpr UINT nCams = 9u;
 	static constexpr UINT iInitialCam = 0u;

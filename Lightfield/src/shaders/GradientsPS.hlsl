@@ -27,7 +27,7 @@ float4 main(float4 screenPos : SV_Position) : SV_Target
             for (int u = 0; u <= k; u++) {
                 for (int v = 0; v <= k; v++) {
 
-                    int camIndex = u * (k + 1) + v; // INDEXING SUCKS, I HATE MY LIFE
+                    int camIndex = u * (k + 1) + v;
                     int3 texOffset = int3(x - kH, y - kH, 0);
 
                     float3 color = colBuffArr[uint3(texPos + texOffset + int3(0, 0, camIndex))].rgb;
