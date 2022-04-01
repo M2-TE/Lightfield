@@ -18,7 +18,8 @@ float4 main(float4 screenPos : SV_Position) : SV_Target
         return float4(depth, depth, depth, 1.0f);
     }
     else if (iPresentationMode == 2) { // OUTPUT DEPTH
-        float depth = abs(outputDepthBuffer[texPos]); // why such a large range?
+        float depth = outputDepthBuffer[texPos];
+        if (depth < 0.0f) depth = -depth;
         return float4(depth, depth, depth, 1.0f);
     }
     else {

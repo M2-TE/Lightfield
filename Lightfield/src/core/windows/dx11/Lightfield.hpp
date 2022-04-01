@@ -113,6 +113,9 @@ private:
 			rtvDesc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0u, i, 1u);
 			pDevice->CreateRenderTargetView(pTexArr.Get(), &rtvDesc, rtvArr[i].GetAddressOf());
 		}
+
+
+
 	}
 	void InitDepthStencils(ID3D11Device* const pDevice, UINT width, UINT height)
 	{
@@ -122,10 +125,10 @@ private:
 	}
 	void InitOffsets(ID3D11Device* const pDevice)
 	{
-		UINT bufferIndex = 0u;
+		UINT bufferIndex = iInitialCam;
 		for (int x = -camLoopLim; x <= camLoopLim; x++) {
 			for (int y = -camLoopLim; y <= camLoopLim; y++) {
-				offsetBufferArr[bufferIndex].GetData() = DirectX::XMFLOAT3A(offset * static_cast<float>(x), offset * static_cast<float>(y), 0.0f);
+				offsetBufferArr[bufferIndex].GetData() = DirectX::XMFLOAT3A(offset * static_cast<float>(x), offset *- static_cast<float>(y), 0.0f); // invert y to match texture coord grid
 				offsetBufferArr[bufferIndex++].Init(pDevice);
 			}
 		}
@@ -135,14 +138,19 @@ private:
 	}
 
 private:
-	static constexpr float offset = 5.1f; // distance to center camera
+	static constexpr float offset = 0.01f; // distance to center camera
 	static constexpr int camLoopLim = 1;
 	static constexpr UINT nCams = 9u;
+	static constexpr UINT iInitialCam = 0u;
 	ConstantBuffer<UINT> previewCamBuffer;
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pTexArr;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pSrvArr;
-	std::array<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>, nCams> rtvArr; // simultaneous render target limit of 4, so each needs to be rendered to separately
+	std::array<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>, nCams> rtvArr;
 	std::array<ConstantBuffer<DirectX::XMFLOAT3A>, nCams> offsetBufferArr;
 	std::array<DepthStencil, nCams> depthStencilArr; // only really need one in reality?
+
+	std::array<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>, nCams> depthRtvArr;
+	std::array<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>, nCams> depthSrvArr;
+	std::array<Microsoft::WRL::ComPtr<ID3D11Texture2D>, nCams> depthTexArr;
 };

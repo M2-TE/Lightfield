@@ -17,6 +17,7 @@ float4 main(float4 screenPos : SV_Position) : SV_Target
     const int kH = 1; // k / 2
 
     const float3 p = float3(0.229879f, 0.540242f, 0.229879f);
+    const float3 d = float3(-0.425287f, 0.0f, 0.425287f);
     const float3 dA = float3(-0.425287f, 0.0f, 0.425287f);
     const float3 dB = float3(0.425287f, 0.0f, -0.425287f);
 
@@ -26,23 +27,18 @@ float4 main(float4 screenPos : SV_Position) : SV_Target
             for (int u = 0; u <= k; u++) {
                 for (int v = 0; v <= k; v++) {
 
-                    int camIndex = u * k + v;
+                    int camIndex = u * (k + 1) + v; // INDEXING SUCKS, I HATE MY LIFE
                     int3 texOffset = int3(x - kH, y - kH, 0);
 
                     float3 color = colBuffArr[uint3(texPos + texOffset + int3(0, 0, camIndex))].rgb;
                     float luma = BRIGHTNESS(color);
 
                     // approximate derivatives using 3-tap filter
-                    float3 d;
-                    d = u < 1 ? dA : dB;
                     Lx += d[x] * p[y] * p[u] * p[v] * luma;
-                    d = x < 1 ? dA : dB;
-                    Lu += p[x] * p[y] * d[u] * p[v] * luma * 0.1f;
+                    Lu += p[x] * p[y] * d[u] * p[v] * luma;
 
-                    d = v < 1 ? dA : dB;
                     Ly += p[x] * d[y] * p[u] * p[v] * luma;
-                    d = y < 1 ? dA : dB;
-                    Lv += p[x] * p[y] * p[u] * d[v] * luma * 0.1f;
+                    Lv += p[x] * p[y] * p[u] * d[v] * luma;
                 }
             }
         }
