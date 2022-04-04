@@ -96,6 +96,13 @@ private:
 
 		// create some objects to view
 		{
+			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, Primitive::Sphere));
+			auto& transform = renderObjects.back()->GetTransform();
+			transform.Translate(0.0f, 0.0f, 2.0f);
+			transform.SetScale(1.0f, 1.0f, 1.0f);
+		}
+		return;
+		{
 			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, Primitive::Cube));
 			auto& transform = renderObjects.back()->GetTransform();
 			transform.Translate(0.0f, 0.0f, 0.0f);
@@ -107,12 +114,6 @@ private:
 			transform.Translate(-0.01f, -3.5f, 0.0f);
 			transform.RotateEuler(static_cast<float>(M_PI_2), 0.0f, 0.0f);
 			transform.SetScale(10.0f, 10.0f, 1.0f);
-		}
-		{
-			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, Primitive::Sphere));
-			auto& transform = renderObjects.back()->GetTransform();
-			transform.Translate(0.0f, 0.0f, 2.0f);
-			transform.SetScale(1.0f, 1.0f, 1.0f);
 		}
 		{
 			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, "Bevel_Floor"));
