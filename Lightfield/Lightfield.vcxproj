@@ -171,8 +171,8 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="vendor\directxtk\DirectXTK_Desktop_2019.vcxproj">
-      <Project>{e0b52ae7-e160-4d32-bf3f-910b785e5a8e}</Project>
+    <ProjectReference Include="vendor\directxtk\DirectXTK_Desktop_2022.vcxproj">
+      <Project>{94afea42-5ead-4d52-9d32-3e29b65645a8}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

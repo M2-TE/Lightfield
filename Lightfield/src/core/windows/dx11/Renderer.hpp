@@ -111,6 +111,8 @@ public:
 	{
 		// save gpu textures to disk in .jpg format
 		lightfield.Screenshot(pDeviceContext.Get());
+
+		oversizedTriangleVS.Bind(pDeviceContext.Get());
 		outputDepth.SaveTextureToFile(pDeviceContext.Get(), L"screenshots/outputDepth.jpg");
 	}
 	void CyclePreviewCam()
