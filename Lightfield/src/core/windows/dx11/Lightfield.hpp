@@ -18,14 +18,15 @@ public:
 		static constexpr float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		for (UINT i = 0u; i < nCams; i++) {
 			pDeviceContext->ClearRenderTargetView(rtvArr[i].Get(), clearColor);
+			pDeviceContext->ClearRenderTargetView(simDepthArr[i].GetRTV(), clearColor);
 			depthStencilArr[i].ClearDepthStencil(pDeviceContext);
 		}
-		
 	}
 	void Simulate(ID3D11DeviceContext* const pDeviceContext, std::vector<std::unique_ptr<RenderObject>>& renderObjects)
 	{
 		for (UINT i = 0u; i < nCams; i++) {
-			pDeviceContext->OMSetRenderTargets(1u, rtvArr[i].GetAddressOf(), depthStencilArr[i].GetView());
+			ID3D11RenderTargetView* rtvs[2] = { rtvArr[i].Get(), simDepthArr[i].GetRTV() };
+			pDeviceContext->OMSetRenderTargets(2u, rtvs, depthStencilArr[i].GetView());
 
 			// Bind offset
 			pDeviceContext->VSSetConstantBuffers(3u, 1u, offsetBufferArr[i].GetBufferAddress());
@@ -36,11 +37,23 @@ public:
 				(*cur)->Draw(pDeviceContext);
 			}
 		}
+
+		// RESET
+		//ID3D11RenderTargetView* rtvs[2] = { nullptr, nullptr };
+		//pDeviceContext->OMSetRenderTargets(2u, rtvs, nullptr);
 	}
 	// TODO: screenshot functionality outside of Texture2D wrapper
 	void Screenshot(ID3D11DeviceContext* const pDeviceContext)
 	{
-		throw new std::exception("TODO: screenshots");
+		//throw new std::exception("TODO: screenshots");
+
+		//const GUID& guidContainerFormat = GUID_ContainerFormatJpeg;
+		//for (int i = 0; i < nCams; i++) {
+
+		//	HRESULT hr = DirectX::SaveWICTextureToFile(pDeviceContext, rtvArr[i].Get(), guidContainerFormat, fileName.c_str());
+		//	if (FAILED(hr)) throw std::runtime_error("Screenshot failed");
+		//}
+		
 		// save gpu textures to disk in .jpg format
 		//simulatedColors[0].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedColor0.jpg");
 		//simulatedDepths[0].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedDepth0.jpg");
@@ -67,13 +80,14 @@ public:
 
 	void BindPreviewTextures(ID3D11DeviceContext* const pDeviceContext)
 	{
-		pDeviceContext->PSSetShaderResources(0u, 1u, pSrvArr.GetAddressOf());
+		ID3D11ShaderResourceView* srvs[] = { pSrvArr.Get(), simDepthArr[previewCamBuffer.GetData()].GetSRV() };
+		pDeviceContext->PSSetShaderResources(0u, 2u, srvs);
 		pDeviceContext->PSSetConstantBuffers(1u, 1u, previewCamBuffer.GetBufferAddress());
 	}
 	void UnbindPreviewTextures(ID3D11DeviceContext* const pDeviceContext)
 	{
-		ID3D11ShaderResourceView* const pSRVs[] = { nullptr };
-		pDeviceContext->PSSetShaderResources(0u, 1u, pSRVs);
+		ID3D11ShaderResourceView* const pSRVs[] = { nullptr, nullptr };
+		pDeviceContext->PSSetShaderResources(0u, 2u, pSRVs);
 	}
 
 
@@ -114,7 +128,21 @@ private:
 			pDevice->CreateRenderTargetView(pTexArr.Get(), &rtvDesc, rtvArr[i].GetAddressOf());
 		}
 
-
+		// simulated depths
+		texDesc.Format = DXGI_FORMAT_R16_UNORM;
+		texDesc.ArraySize = 1u;
+		srvDesc.Format = texDesc.Format;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MipLevels = 1u;
+		srvDesc.Texture2D.MostDetailedMip = 0u;
+		rtvDesc.Format = texDesc.Format;
+		rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		rtvDesc.Texture2D.MipSlice = 0u;
+		for (UINT i = 0u; i < nCams; i++) {
+			simDepthArr[i].CreateTexture(pDevice, texDesc);
+			simDepthArr[i].CreateRTV(pDevice, rtvDesc);
+			simDepthArr[i].CreateSRV(pDevice, srvDesc);
+		}
 
 	}
 	void InitDepthStencils(ID3D11Device* const pDevice, UINT width, UINT height)
@@ -149,6 +177,9 @@ private:
 	std::array<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>, nCams> rtvArr;
 	std::array<ConstantBuffer<DirectX::XMFLOAT3A>, nCams> offsetBufferArr;
 	std::array<DepthStencil, nCams> depthStencilArr; // only really need one in reality?
+
+	// for screenshots
+	std::array<Texture2D, nCams> simDepthArr;
 
 	std::array<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>, nCams> depthRtvArr;
 	std::array<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>, nCams> depthSrvArr;

@@ -101,7 +101,6 @@ private:
 			transform.Translate(0.0f, 0.0f, 2.0f);
 			transform.SetScale(1.0f, 1.0f, 1.0f);
 		}
-		return;
 		{
 			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, Primitive::Cube));
 			auto& transform = renderObjects.back()->GetTransform();

@@ -9,7 +9,7 @@ struct Input
 struct Output
 {
     float4 color : SV_Target0;
-    //float depth : SV_Target1;
+    float depth : SV_Target1;
 };
 
 #define NUM_LIGHTS 1u
@@ -40,8 +40,8 @@ Output main(Input input)
     output.color *= max(min(lightIntensity, 1.0f), 0.15f); // 0.1f ambient light
 
     // calculate distance from camera to object via magnitude of view pos
-    //output.depth = length(input.viewPos.xyz);
-    //output.depth /= 20.0f; // should probably be scaled dynamically instead
+    output.depth = length(input.viewPos.xyz);
+    output.depth /= 20.0f; // should probably be scaled dynamically instead
 
     return output;
 }
