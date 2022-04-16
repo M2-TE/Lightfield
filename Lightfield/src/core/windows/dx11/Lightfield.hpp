@@ -37,28 +37,46 @@ public:
 				(*cur)->Draw(pDeviceContext);
 			}
 		}
-
-		// RESET
-		//ID3D11RenderTargetView* rtvs[2] = { nullptr, nullptr };
-		//pDeviceContext->OMSetRenderTargets(2u, rtvs, nullptr);
 	}
 
 	// save gpu textures to disk in .jpg format
 	void Screenshot(ID3D11DeviceContext* const pDeviceContext)
 	{
-		//const GUID& guidContainerFormat = GUID_ContainerFormatJpeg;
 		for (UINT i = 0u; i < nCams; i++) {
 
 			std::wstringstream wss;
 			wss << L"screenshots/simulated_depth_" << i << L".jpg";
 			simDepthArr[i].SaveTextureToFile(pDeviceContext, wss.str());
 		}
+
+		pDeviceContext->PSSetShaderResources(0u, 1u, pSrvArr.GetAddressOf());
+		pDeviceContext->PSSetConstantBuffers(0u, 1u, previewCamBuffer.GetBufferAddress());
+		pDeviceContext->OMSetRenderTargets(1u, screenshotBuffer.GetRTVAddress(), nullptr);
+		UINT iOrig = previewCamBuffer.GetData(); // save original index
+		for (UINT i = 0u; i < nCams; i++) {
+
+			// update index (using the already existing preview cam buffer for that purpose)
+			previewCamBuffer.Update(pDeviceContext, i);
+
+			// render current texture into screenshot buffer
+			static constexpr UINT zero = 0u;
+			pDeviceContext->IASetVertexBuffers(zero, zero, nullptr, &zero, &zero);
+			pDeviceContext->Draw(3u, zero);
+			
+			// then save screenshot buffer as .jpg
+			std::wstringstream wss;
+			wss << L"screenshots/simulated_color" << i << L".jpg";
+			screenshotBuffer.SaveTextureToFile(pDeviceContext, wss.str());
+		}
+
+		// reset back to original state
+		previewCamBuffer.Update(pDeviceContext, iOrig);
 	}
 
 	void CyclePreviewCamera(ID3D11DeviceContext* const pDeviceContext)
 	{
 		UINT iCur = previewCamBuffer.GetData();
-		previewCamBuffer.GetData() = (iCur + 1) % nCams;
+		//previewCamBuffer.GetData() = (iCur + 1) % nCams;
 		previewCamBuffer.Update(pDeviceContext, (iCur + 1) % nCams);
 	}
 	void BindColorTextures(ID3D11DeviceContext* const pDeviceContext)
@@ -137,6 +155,14 @@ private:
 			simDepthArr[i].CreateSRV(pDevice, srvDesc);
 		}
 
+		// screenshot buffer
+		texDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		srvDesc.Format = texDesc.Format;
+		rtvDesc.Format = texDesc.Format;
+		screenshotBuffer.CreateTexture(pDevice, texDesc);
+		screenshotBuffer.CreateRTV(pDevice, rtvDesc);
+		screenshotBuffer.CreateSRV(pDevice, srvDesc);
+
 	}
 	void InitDepthStencils(ID3D11Device* const pDevice, UINT width, UINT height)
 	{
@@ -173,6 +199,7 @@ private:
 
 	// for screenshots
 	std::array<Texture2D, nCams> simDepthArr;
+	Texture2D screenshotBuffer;
 
 	std::array<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>, nCams> depthRtvArr;
 	std::array<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>, nCams> depthSrvArr;

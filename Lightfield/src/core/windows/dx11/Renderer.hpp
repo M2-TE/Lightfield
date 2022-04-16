@@ -107,13 +107,15 @@ public:
 		pDeviceContext->PSSetShaderResources(0u, 3u, pSRVsNull);
 	}
 
+	// save gpu textures to disk in .jpg format
 	void Screenshot()
 	{
-		// save gpu textures to disk in .jpg format
-		lightfield.Screenshot(pDeviceContext.Get());
-
-		oversizedTriangleVS.Bind(pDeviceContext.Get());
 		outputDepth.SaveTextureToFile(pDeviceContext.Get(), L"screenshots/outputDepth.jpg");
+
+		// render textures into a screenshot buffer for processing
+		oversizedTriangleVS.Bind(pDeviceContext.Get());
+		simpleWritePS.Bind(pDeviceContext.Get());
+		lightfield.Screenshot(pDeviceContext.Get());
 	}
 	void CyclePreviewCam()
 	{
@@ -343,6 +345,7 @@ private:
 		gradientsPS.LoadShader(pDevice.Get(), L"data/shaders/GradientsPS.cso");
 		depthDeductionPS.LoadShader(pDevice.Get(), L"data/shaders/DepthDeductionPS.cso");
 		presentationPS.LoadShader(pDevice.Get(), L"data/shaders/PresentationPS.cso");
+		simpleWritePS.LoadShader(pDevice.Get(), L"data/shaders/SimpleWritePS.cso");
 	}
 
 public:
@@ -370,7 +373,7 @@ private:
 
 	// Shaders
 	Shader<ID3D11VertexShader> forwardVS, oversizedTriangleVS;
-	Shader<ID3D11PixelShader> forwardPS, gradientsPS, depthDeductionPS, presentationPS;
+	Shader<ID3D11PixelShader> forwardPS, gradientsPS, depthDeductionPS, presentationPS, simpleWritePS;
 
 	// Render objects
 	std::unique_ptr<Camera> pCamera;
