@@ -32,7 +32,7 @@ public:
 			pDeviceContext->VSSetConstantBuffers(3u, 1u, offsetBufferArr[i].GetBufferAddress());
 
 			// Bind and draw all the individual objects
-			for (auto cur = renderObjects.begin(); cur != renderObjects.end(); cur++) {
+			for (auto cur = renderObjects.begin(); cur != renderObjects.end(); cur++) {;
 				pDeviceContext->VSSetConstantBuffers(0u, 1u, (*cur)->GetTransform().GetBuffer(pDeviceContext).GetBufferAddress());
 				(*cur)->Draw(pDeviceContext);
 			}
@@ -42,24 +42,17 @@ public:
 		//ID3D11RenderTargetView* rtvs[2] = { nullptr, nullptr };
 		//pDeviceContext->OMSetRenderTargets(2u, rtvs, nullptr);
 	}
-	// TODO: screenshot functionality outside of Texture2D wrapper
+
+	// save gpu textures to disk in .jpg format
 	void Screenshot(ID3D11DeviceContext* const pDeviceContext)
 	{
-		//throw new std::exception("TODO: screenshots");
-
 		//const GUID& guidContainerFormat = GUID_ContainerFormatJpeg;
-		//for (int i = 0; i < nCams; i++) {
+		for (UINT i = 0u; i < nCams; i++) {
 
-		//	HRESULT hr = DirectX::SaveWICTextureToFile(pDeviceContext, rtvArr[i].Get(), guidContainerFormat, fileName.c_str());
-		//	if (FAILED(hr)) throw std::runtime_error("Screenshot failed");
-		//}
-		
-		// save gpu textures to disk in .jpg format
-		//simulatedColors[0].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedColor0.jpg");
-		//simulatedDepths[0].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedDepth0.jpg");
-
-		//simulatedColors[1].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedColor1.jpg");
-		//simulatedDepths[1].SaveTextureToFile(pDeviceContext, L"screenshots/simulatedDepth1.jpg");
+			std::wstringstream wss;
+			wss << L"screenshots/simulated_depth_" << i << L".jpg";
+			simDepthArr[i].SaveTextureToFile(pDeviceContext, wss.str());
+		}
 	}
 
 	void CyclePreviewCamera(ID3D11DeviceContext* const pDeviceContext)
