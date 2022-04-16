@@ -110,6 +110,12 @@ public:
 	// save gpu textures to disk in .jpg format
 	void Screenshot()
 	{
+		// create directory if it doesnt already exist
+		std::wstringstream wss;
+		wss << std::filesystem::current_path().c_str() << L"/screenshots";
+		std::filesystem::path path = wss.str();
+		if (!std::filesystem::exists(path)) std::filesystem::create_directory(path);
+
 		outputDepth.SaveTextureToFile(pDeviceContext.Get(), L"screenshots/outputDepth.jpg");
 
 		// render textures into a screenshot buffer for processing
