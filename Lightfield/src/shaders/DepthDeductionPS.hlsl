@@ -8,6 +8,7 @@ float main(float4 screenPos : SV_Position) : SV_Target
 	float a = 0.0f;
 	float b = 0.0f;
 
+	// version A
 	if (true) {
 		int s = 1;
 		for (int x = -s; x <= s; x++) {
@@ -23,6 +24,7 @@ float main(float4 screenPos : SV_Position) : SV_Target
 		return (a / b);
 
 	}
+	// version B
 	else {
 
 		float4 gradients = gradientBuffer[texPos]; // Lx, Ly, Lu, Lv

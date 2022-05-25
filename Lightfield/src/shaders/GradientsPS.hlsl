@@ -1,4 +1,4 @@
-#define BRIGHTNESS(col) dot(col, float3(0.333333f, 0.333333f, 0.333333f)); // using standard greyscale for now, human perception might be fun to look into later
+#define BRIGHTNESS(col) dot(col, float3(0.333333f, 0.333333f, 0.333333f)); // using standard greyscale
 
 Texture2DArray colBuffArr : register(t0);
 
@@ -18,8 +18,6 @@ float4 main(float4 screenPos : SV_Position) : SV_Target
 
     const float3 p = float3(0.229879f, 0.540242f, 0.229879f);
     const float3 d = float3(-0.425287f, 0.0f, 0.425287f);
-    const float3 dA = float3(-0.425287f, 0.0f, 0.425287f);
-    const float3 dB = float3(0.425287f, 0.0f, -0.425287f);
 
     // iterate over 2D patch of pixels
     for (int x = 0; x <= k; x++) {
