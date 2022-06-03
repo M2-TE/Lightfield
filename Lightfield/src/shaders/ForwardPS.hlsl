@@ -42,6 +42,8 @@ Output main(Input input)
     // calculate distance from camera to object via magnitude of view pos
     output.depth = length(input.viewPos.xyz);
     output.depth /= 20.0f; // should probably be scaled dynamically instead
+    // inverse to be similar to the calculated depth (dark -> bright)
+    output.depth = output.depth * -1.0f + 1.0f;
 
     return output;
 }

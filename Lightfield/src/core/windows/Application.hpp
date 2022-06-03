@@ -101,12 +101,12 @@ private:
 			transform.Translate(0.0f, 0.0f, 2.0f);
 			transform.SetScale(1.0f, 1.0f, 1.0f);
 		}
-		{
-			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, Primitive::Cube));
-			auto& transform = renderObjects.back()->GetTransform();
-			transform.Translate(0.0f, 0.0f, 0.0f);
-			transform.SetScale(0.3f, 0.3f, 0.3f);
-		}
+		//{
+		//	renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, Primitive::Cube));
+		//	auto& transform = renderObjects.back()->GetTransform();
+		//	transform.Translate(0.0f, 0.0f, 0.0f);
+		//	transform.SetScale(0.3f, 0.3f, 0.3f);
+		//}
 		{
 			renderObjects.emplace_back(std::make_unique<RenderObject>(pDevice, Primitive::Quad));
 			auto& transform = renderObjects.back()->GetTransform();
@@ -145,6 +145,7 @@ private:
 	void Update()
 	{
 		Time::Get().Mark();
+		
 		HandleInput();
 
 		pRenderer->SimulateScene();
